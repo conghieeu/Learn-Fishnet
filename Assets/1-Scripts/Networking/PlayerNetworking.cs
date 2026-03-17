@@ -141,24 +141,6 @@ public class PlayerNetworking : NetworkBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (!IsOwner) return;
-
-        HandleMovement();
-    }
-
-    private void HandleMovement()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        if (horizontal != 0f || vertical != 0f)
-        {
-            ServerMovePlayer(horizontal, vertical);
-        }
-    }
-
     [ServerRpc]
     private void ServerMovePlayer(float horizontal, float vertical)
     {

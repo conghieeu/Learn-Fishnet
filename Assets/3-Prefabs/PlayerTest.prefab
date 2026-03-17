@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -3692196265266303231}
   - component: {fileID: 7809179893741268184}
   m_Layer: 0
-  m_Name: Player
+  m_Name: PlayerTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -102,6 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56bba46cfc860df4aa3555d29822f736, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
+  SaveSlot: DefaultWorld
 --- !u!114 &-3692196265266303231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -135,7 +136,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _preventDespawnOnDisconnect: 0
   _defaultDespawnType: 0
-  _initializedTimestamp: -8584278681676640182
+  _initializedTimestamp: -8584278434068206719
   NetworkObserver: {fileID: 0}
   _enablePrediction: 0
   _predictionType: 0
@@ -151,9 +152,9 @@ MonoBehaviour:
   _spectatorInterpolation: 2
   _enableTeleport: 0
   _teleportThreshold: 1
-  <PrefabId>k__BackingField: 0
+  <PrefabId>k__BackingField: 8
   <SpawnableCollectionId>k__BackingField: 0
-  <AssetPathHash>k__BackingField: 11456652763013504956
+  <AssetPathHash>k__BackingField: 10845663962333393452
   SceneId: 0
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}

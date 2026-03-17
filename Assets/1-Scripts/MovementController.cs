@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class MovementSystem : MonoBehaviour
+public class MovementController : MonoBehaviour
 {
     [SerializeField] float walkSpeed = 3f;
     [SerializeField] float sprintSpeed = 6f;
