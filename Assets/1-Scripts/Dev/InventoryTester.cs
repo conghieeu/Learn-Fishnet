@@ -42,9 +42,9 @@ public class InventoryTester : NetworkBehaviour
         bool success = targetInventory.AddItem(itemToAdd.ItemID, amountToAdd);
 
         if (success)
-            Debug.Log($"[InventoryTester] ✅ Đã thêm {itemToAdd.ItemName} x{amountToAdd} vào inventory!");
+            Debug.Log($"[InventoryTester] OK Đã thêm {itemToAdd.ItemName} x{amountToAdd} vào inventory!");
         else
-            Debug.LogWarning($"[InventoryTester] ❌ Không thể thêm {itemToAdd.ItemName} — inventory có thể đầy!");
+            Debug.LogWarning($"[InventoryTester] Fail Không thể thêm {itemToAdd.ItemName} — inventory có thể đầy!");
     }
 
     /// <summary>

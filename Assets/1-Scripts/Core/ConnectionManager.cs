@@ -8,8 +8,7 @@ using Unity.Services.Relay.Models;
 
 /// <summary>
 /// ROLE: UNIFIED CONNECTION MANAGER
-/// Quản lý toàn bộ việc tạo phòng và tham gia phòng.
-/// Hỗ trợ cả 2 chế độ: Local (IP) và Relay (Mã phòng).
+/// Quản lý toàn bộ việc tạo phòng và tham gia phòng qua Unity Relay.
 /// </summary>
 public class ConnectionManager : MonoBehaviour
 {
@@ -50,32 +49,7 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    #region LOCAL CONNECTION (LAN / IP)
-
-    /// <summary>
-    /// Host phòng qua IP local.
-    /// </summary>
-    public void StartHostLocal()
-    {
-        PrepareSaveSlot();
-        InstanceFinder.ServerManager.StartConnection();
-        InstanceFinder.ClientManager.StartConnection();
-        Debug.Log($"[Connection] ✅ Host Local started | World: {saveSlot}");
-    }
-
-    /// <summary>
-    /// Join phòng qua IP local.
-    /// </summary>
-    public void JoinLocal(string ipAddress)
-    {
-        InstanceFinder.TransportManager.Transport.SetClientAddress(ipAddress);
-        InstanceFinder.ClientManager.StartConnection();
-        Debug.Log($"[Connection] 🔗 Joining Local IP: {ipAddress}");
-    }
-
-    #endregion
-
-    #region RELAY CONNECTION (INTERNET)
+    #region RELAY CONNECTION (INTERNET ONLY)
 
     /// <summary>
     /// Host phòng qua Unity Relay.
@@ -90,7 +64,7 @@ public class ConnectionManager : MonoBehaviour
 
             InstanceFinder.ServerManager.StartConnection();
             InstanceFinder.ClientManager.StartConnection();
-            Debug.Log($"[Connection] ✅ Host Relay started | Code: {currentRoomCode} | World: {saveSlot}");
+            Debug.Log($"[Connection] OK Host Relay started | Code: {currentRoomCode} | World: {saveSlot}");
         }
         catch (System.Exception e)
         {
@@ -107,7 +81,7 @@ public class ConnectionManager : MonoBehaviour
         {
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(roomCode);
             InstanceFinder.ClientManager.StartConnection();
-            Debug.Log($"[Connection] 🔗 Joining Relay Room: {roomCode}");
+            Debug.Log($"[Connection] Join Joining Relay Room: {roomCode}");
         }
         catch (System.Exception e)
         {
@@ -129,7 +103,7 @@ public class ConnectionManager : MonoBehaviour
             InstanceFinder.ClientManager.StopConnection();
 
         currentRoomCode = "";
-        Debug.Log("[Connection] 🔴 Disconnected from room.");
+        Debug.Log("[Connection] Leave Disconnected from room.");
     }
 
     private void PrepareSaveSlot()
@@ -137,7 +111,7 @@ public class ConnectionManager : MonoBehaviour
         if (PlayerDataManager.Instance != null)
         {
             PlayerDataManager.Instance.SaveSlot = saveSlot;
-            Debug.Log($"[Connection] 📁 Save Slot set to: {saveSlot}");
+            Debug.Log($"[Connection] [Save] Save Slot set to: {saveSlot}");
         }
     }
 }

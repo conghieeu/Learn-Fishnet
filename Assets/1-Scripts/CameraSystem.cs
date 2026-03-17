@@ -65,13 +65,13 @@ public class CameraSystem : MonoBehaviour
             // Bật photo mode - hiển thị layer bóng ma
             // Thêm ghost layer vào culling mask
             mainCamera.cullingMask |= ghostLayerMask;
-            Debug.Log("📷 CAMERA MODE ON - Tìm bóng ma...");
+            Debug.Log("[Camera] CAMERA MODE ON - Tìm bóng ma...");
         }
         else
         {
             // Tắt photo mode - ẩn bóng ma, trở về bình thường
             mainCamera.cullingMask = originalCullingMask;
-            Debug.Log("📷 CAMERA MODE OFF");
+            Debug.Log("[Camera] CAMERA MODE OFF");
         }
     }
 
@@ -99,7 +99,7 @@ public class CameraSystem : MonoBehaviour
         string filename = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".png";
         string path = System.IO.Path.Combine(Application.persistentDataPath, filename);
         ScreenCapture.CaptureScreenshot(filename);
-        Debug.Log($"📸 Chụp ảnh: {path}");
+        Debug.Log($"[Camera] Chụp ảnh: {path}");
     }
 
     public bool IsPhotoMode => isPhotoMode;

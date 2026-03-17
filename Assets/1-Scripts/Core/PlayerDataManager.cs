@@ -62,7 +62,7 @@ public class PlayerDataManager : MonoBehaviour
         };
 
         ES3.Save(playerName, data, GetFilePath());
-        Debug.Log($"[SaveSystem] 💾 Đã lưu [{playerName}] vào [{SaveSlot}] tại {position}");
+        Debug.Log($"[SaveSystem] Save Đã lưu [{playerName}] vào [{SaveSlot}] tại {position}");
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class PlayerDataManager : MonoBehaviour
         }
 
         PlayerData data = ES3.Load<PlayerData>(playerName, GetFilePath());
-        Debug.Log($"[SaveSystem] 📂 Đã tải [{playerName}] từ [{SaveSlot}] tại {data.Position}");
+        Debug.Log($"[SaveSystem] Load Đã tải [{playerName}] từ [{SaveSlot}] tại {data.Position}");
         return data;
     }
 
@@ -89,7 +89,7 @@ public class PlayerDataManager : MonoBehaviour
         if (HasSaveData(playerName))
         {
             ES3.DeleteKey(playerName, GetFilePath());
-            Debug.Log($"[SaveSystem] 🗑 Đã xóa data [{playerName}] từ [{SaveSlot}]");
+            Debug.Log($"[SaveSystem] Delete Đã xóa data [{playerName}] từ [{SaveSlot}]");
         }
     }
 }

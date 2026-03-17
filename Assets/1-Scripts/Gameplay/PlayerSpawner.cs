@@ -44,7 +44,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (args.ConnectionState == LocalConnectionState.Started)
         {
-            Debug.Log("[PlayerSpawner] 🔄 Server khởi động → đăng ký lại events");
+            Debug.Log("[PlayerSpawner] Reset Server khởi động -> đăng ký lại events");
 
             if (InstanceFinder.SceneManager != null)
             {
@@ -58,7 +58,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (!asServer) return;
 
-        Debug.Log($"[PlayerSpawner] 🔔 Client {conn.ClientId} đã tải xong scene");
+        Debug.Log($"[PlayerSpawner] Alert Client {conn.ClientId} đã tải xong scene");
         SpawnPlayer(conn);
     }
 
@@ -85,7 +85,7 @@ public class PlayerSpawner : MonoBehaviour
         NetworkObject playerObj = Instantiate(playerPrefab, spawnPos, spawnRot);
         InstanceFinder.ServerManager.Spawn(playerObj, conn);
 
-        Debug.Log($"[PlayerSpawner] ✅ Đã spawn player cho Client {clientId} tại {spawnPos}");
-        Debug.Log($"[PlayerSpawner] ⏳ Đang chờ client gửi tên để load data...");
+        Debug.Log($"[PlayerSpawner] OK Đã spawn player cho Client {clientId} tại {spawnPos}");
+        Debug.Log($"[PlayerSpawner] Wait Đang chờ client gửi tên để load data...");
     }
 }

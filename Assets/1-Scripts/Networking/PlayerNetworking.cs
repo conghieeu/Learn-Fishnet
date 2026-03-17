@@ -30,7 +30,7 @@ public class PlayerNetworking : NetworkBehaviour
 
             // Gửi tên lên server để load data
             string myName = PlayerPrefs.GetString("PlayerName", "Player");
-            Debug.Log($"[Player] 📤 Gửi tên [{myName}] lên server...");
+            Debug.Log($"[Player] Send Gửi tên [{myName}] lên server...");
             ServerSetPlayerName(myName);
         }
         else
@@ -42,7 +42,7 @@ public class PlayerNetworking : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
-        Debug.Log($"[Player] ▶ Server: Player spawned | Owner ID: {OwnerId} | Vị trí: {transform.position}");
+        Debug.Log($"[Player] Start Server: Player spawned | Owner ID: {OwnerId} | Vị trí: {transform.position}");
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class PlayerNetworking : NetworkBehaviour
     private void ServerSetPlayerName(string name)
     {
         playerName.Value = name;
-        Debug.Log($"[Player] 📥 Server nhận tên [{name}] từ Owner {OwnerId}");
+        Debug.Log($"[Player] Receive Server nhận tên [{name}] từ Owner {OwnerId}");
 
         // Load data từ save
         LoadSavedData(name);
@@ -66,7 +66,7 @@ public class PlayerNetworking : NetworkBehaviour
     {
         if (PlayerDataManager.Instance == null)
         {
-            Debug.LogWarning("[Player] ⚠ PlayerDataManager chưa có trên scene!");
+            Debug.LogWarning("[Player] Warn PlayerDataManager chưa có trên scene!");
             return;
         }
 
@@ -77,7 +77,7 @@ public class PlayerNetworking : NetworkBehaviour
             // Teleport tới vị trí đã lưu
             transform.position = savedData.Value.Position;
             transform.rotation = savedData.Value.Rotation;
-            Debug.Log($"[Player] 📂 [{name}] → Teleport tới {savedData.Value.Position}");
+            Debug.Log($"[Player] Load [{name}] → Teleport tới {savedData.Value.Position}");
 
             // Nạp inventory
             if (savedData.Value.InventoryItems != null)
@@ -86,7 +86,7 @@ public class PlayerNetworking : NetworkBehaviour
                 if (inventory != null)
                 {
                     inventory.SetSlots(savedData.Value.InventoryItems);
-                    Debug.Log($"[Player] 📦 [{name}] → Đã nạp {savedData.Value.InventoryItems.Count} slots inventory");
+                    Debug.Log($"[Player] Inventory [{name}] → Đã nạp {savedData.Value.InventoryItems.Count} slots inventory");
                 }
             }
 
@@ -94,7 +94,7 @@ public class PlayerNetworking : NetworkBehaviour
         }
         else
         {
-            Debug.Log($"[Player] 🆕 [{name}] → Chưa có save, giữ vị trí mặc định");
+            Debug.Log($"[Player] New [{name}] → Chưa có save, giữ vị trí mặc định");
         }
     }
 
@@ -107,11 +107,11 @@ public class PlayerNetworking : NetworkBehaviour
         base.OnStopServer();
 
         string name = playerName.Value;
-        Debug.Log($"[Player] ⏹ OnStopServer | [{name}] | Vị trí: {transform.position}");
+        Debug.Log($"[Player] Stop OnStopServer | [{name}] | Vị trí: {transform.position}");
 
         if (string.IsNullOrEmpty(name))
         {
-            Debug.LogWarning("[Player] ⚠ playerName rỗng, không thể save!");
+            Debug.LogWarning("[Player] Warn playerName rỗng, không thể save!");
             return;
         }
 
@@ -123,7 +123,7 @@ public class PlayerNetworking : NetworkBehaviour
             if (inventory != null)
             {
                 items = new List<ItemSaveData>(inventory.Slots);
-                Debug.Log($"[Player] 📦 [{name}] → Inventory có {items.Count} slots");
+                Debug.Log($"[Player] Inventory [{name}] → Inventory có {items.Count} slots");
             }
 
             PlayerDataManager.Instance.SavePlayerData(
@@ -133,11 +133,11 @@ public class PlayerNetworking : NetworkBehaviour
                 items
             );
 
-            Debug.Log($"[Player] 💾 Đã lưu [{name}] tại {transform.position}");
+            Debug.Log($"[Player] Save Đã lưu [{name}] tại {transform.position}");
         }
         else
         {
-            Debug.LogWarning("[Player] ⚠ PlayerDataManager.Instance == null, KHÔNG THỂ LƯU!");
+            Debug.LogWarning("[Player] Warn PlayerDataManager.Instance == null, KHÔNG THỂ LƯU!");
         }
     }
 

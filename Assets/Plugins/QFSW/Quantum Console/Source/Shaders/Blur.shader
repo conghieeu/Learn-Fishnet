@@ -1,3 +1,5 @@
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "QFSW/Blur"
 {
     Properties
@@ -8,263 +10,210 @@ Shader "QFSW/Blur"
         _Radius("Radius", Range(0, 20)) = 1
     }
 
-    SubShader
+    Category
     {
-        Tags
-        {
-            "Queue" = "Transparent"
-            "IgnoreProjector" = "True"
-            "RenderType" = "Transparent"
-            "RenderPipeline" = "UniversalPipeline"
-        }
 
-        Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite Off
-        Cull Off
+    Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
+    Blend SrcAlpha OneMinusSrcAlpha
+    SubShader{
 
-        // ===== Pass 1: Horizontal Blur =====
-        Pass
-        {
-            Name "HorizontalBlur"
-            Tags { "LightMode" = "SRPDefaultUnlit" }
+    GrabPass{
+    Tags{ "LightMode" = "Always" }
+    }
+    Pass{
+    Tags{ "LightMode" = "Always" }
 
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+    CGPROGRAM
+#pragma vertex vert
+#pragma fragment frag
+#pragma fragmentoption ARB_precision_hint_fastest
+#include "UnityCG.cginc"
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+    struct appdata_t
+    {
+        float4 vertex : POSITION;
+        float2 texcoord: TEXCOORD0;
+        fixed4 color : COLOR;
+    };
 
-            struct appdata_t
-            {
-                float4 vertex : POSITION;
-                float2 texcoord : TEXCOORD0;
-                float4 color : COLOR;
-            };
+    struct v2f
+    {
+        float4 vertex : POSITION;
+        float4 uvgrab : TEXCOORD0;
+        fixed4 color : COLOR;
+    };
 
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 screenUV : TEXCOORD0;
-                float4 color : COLOR;
-            };
-
-            float _Radius;
-            float _BlurMultiplier;
-
-            v2f vert(appdata_t v)
-            {
-                v2f o;
-                o.vertex = TransformObjectToHClip(v.vertex.xyz);
-
-                float4 screenPos = ComputeScreenPos(o.vertex);
-                o.screenUV = screenPos.xy / screenPos.w;
-
-                o.color = v.color;
-                return o;
-            }
-
-            half4 frag(v2f i) : SV_Target
-            {
-                float radius = _Radius * _BlurMultiplier * i.color.a;
-                float2 texelSize = float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
-
-                half4 sum = half4(0,0,0,0);
-
-                half3 c = half3(0,0,0);
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * -4.0 * radius, i.screenUV.y)) * 0.05;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * -3.0 * radius, i.screenUV.y)) * 0.09;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * -2.0 * radius, i.screenUV.y)) * 0.12;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * -1.0 * radius, i.screenUV.y)) * 0.15;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y)) * 0.18;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * 1.0 * radius, i.screenUV.y)) * 0.15;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * 2.0 * radius, i.screenUV.y)) * 0.12;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * 3.0 * radius, i.screenUV.y)) * 0.09;
-                c += SampleSceneColor(float2(i.screenUV.x + texelSize.x * 4.0 * radius, i.screenUV.y)) * 0.05;
-
-                return half4(c, 1.0);
-            }
-            ENDHLSL
-        }
-
-        // ===== Pass 2: Vertical Blur =====
-        Pass
-        {
-            Name "VerticalBlur"
-            Tags { "LightMode" = "UniversalForward" }
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
-
-            struct appdata_t
-            {
-                float4 vertex : POSITION;
-                float2 texcoord : TEXCOORD0;
-                float4 color : COLOR;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 screenUV : TEXCOORD0;
-                float4 color : COLOR;
-            };
-
-            float _Radius;
-            float _BlurMultiplier;
-
-            v2f vert(appdata_t v)
-            {
-                v2f o;
-                o.vertex = TransformObjectToHClip(v.vertex.xyz);
-
-                float4 screenPos = ComputeScreenPos(o.vertex);
-                o.screenUV = screenPos.xy / screenPos.w;
-
-                o.color = v.color;
-                return o;
-            }
-
-            half4 frag(v2f i) : SV_Target
-            {
-                float radius = _Radius * _BlurMultiplier * i.color.a;
-                float2 texelSize = float2(1.0 / _ScreenParams.x, 1.0 / _ScreenParams.y);
-
-                half4 sum = half4(0,0,0,0);
-
-                half3 c = half3(0,0,0);
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * -4.0 * radius)) * 0.05;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * -3.0 * radius)) * 0.09;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * -2.0 * radius)) * 0.12;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * -1.0 * radius)) * 0.15;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y)) * 0.18;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * 1.0 * radius)) * 0.15;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * 2.0 * radius)) * 0.12;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * 3.0 * radius)) * 0.09;
-                c += SampleSceneColor(float2(i.screenUV.x, i.screenUV.y + texelSize.y * 4.0 * radius)) * 0.05;
-
-                return half4(c, 1.0);
-            }
-            ENDHLSL
-        }
-
-        // ===== Pass 3: Tint & Overlay =====
-        Pass
-        {
-            Name "TintOverlay"
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
-
-            struct appdata_t
-            {
-                float4 vertex : POSITION;
-                float2 texcoord : TEXCOORD0;
-                float4 color : COLOR;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 screenUV : TEXCOORD0;
-                float2 uvmain : TEXCOORD1;
-                float4 color : COLOR;
-            };
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            float4 _MainTex_ST;
-
-            half4 _Color;
-            half4 _OverlayColor;
-
-            v2f vert(appdata_t v)
-            {
-                v2f o;
-                o.vertex = TransformObjectToHClip(v.vertex.xyz);
-
-                float4 screenPos = ComputeScreenPos(o.vertex);
-                o.screenUV = screenPos.xy / screenPos.w;
-
-                o.uvmain = TRANSFORM_TEX(v.texcoord, _MainTex);
-                o.color = v.color;
-                return o;
-            }
-
-            half4 frag(v2f i) : SV_Target
-            {
-                half4 blurredCol = half4(SampleSceneColor(i.screenUV), 1.0);
-                half4 texCol = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uvmain);
-                half4 tint = texCol * _Color;
-
-                half4 col = blurredCol * tint;
-                col = col * (1 - _OverlayColor.a) + _OverlayColor * _OverlayColor.a;
-                col *= i.color;
-                col = blurredCol * (1 - texCol.a) + col * texCol.a;
-
-                return col;
-            }
-            ENDHLSL
-        }
+    v2f vert(appdata_t v)
+    {
+        v2f o;
+        o.vertex = UnityObjectToClipPos(v.vertex);
+#if UNITY_UV_STARTS_AT_TOP
+        float scale = -1.0;
+#else
+        float scale = 1.0;
+#endif
+        o.uvgrab.xy = (float2(o.vertex.x, o.vertex.y*scale) + o.vertex.w) * 0.5;
+        o.uvgrab.zw = o.vertex.zw;
+        o.color = v.color;
+        return o;
     }
 
-    // Fallback cho Built-in pipeline
-    SubShader
+    sampler2D _GrabTexture;
+    float4 _GrabTexture_TexelSize;
+    uniform float _Radius;
+    uniform float _BlurMultiplier = 1;
+
+    half4 frag(v2f i) : COLOR
     {
-        Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
-        Blend SrcAlpha OneMinusSrcAlpha
+        _Radius *= _BlurMultiplier;
+        _Radius *= i.color.a;
+        half4 sum = half4(0,0,0,0);
+#define GRABPIXEL(weight, kernelx) tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x + _GrabTexture_TexelSize.x * kernelx * _Radius, i.uvgrab.y, i.uvgrab.z, i.uvgrab.w))) * weight
+        sum += GRABPIXEL(0.05, -4.0);
+        sum += GRABPIXEL(0.09, -3.0);
+        sum += GRABPIXEL(0.12, -2.0);
+        sum += GRABPIXEL(0.15, -1.0);
+        sum += GRABPIXEL(0.18,  0.0);
+        sum += GRABPIXEL(0.15, +1.0);
+        sum += GRABPIXEL(0.12, +2.0);
+        sum += GRABPIXEL(0.09, +3.0);
+        sum += GRABPIXEL(0.05, +4.0);
 
-        Pass
+        return sum;
+    }
+        ENDCG
+    }
+
+    GrabPass
+    {
+        Tags{ "LightMode" = "Always" }
+    }
+    Pass{
+        Tags{ "LightMode" = "Always" }
+
+        CGPROGRAM
+#pragma vertex vert
+#pragma fragment frag
+#pragma fragmentoption ARB_precision_hint_fastest
+#include "UnityCG.cginc"
+
+        struct appdata_t 
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #include "UnityCG.cginc"
+            float4 vertex : POSITION;
+            float2 texcoord: TEXCOORD0;
+            fixed4 color : COLOR;
+        };
 
-            struct appdata_t
-            {
-                float4 vertex : POSITION;
-                float2 texcoord : TEXCOORD0;
-                float4 color : COLOR;
-            };
+    struct v2f {
+        float4 vertex : POSITION;
+        float4 uvgrab : TEXCOORD0;
+        fixed4 color : COLOR;
+    };
 
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float4 color : COLOR;
-            };
+    v2f vert(appdata_t v) {
+        v2f o;
+        o.vertex = UnityObjectToClipPos(v.vertex);
+#if UNITY_UV_STARTS_AT_TOP
+        float scale = -1.0;
+#else
+        float scale = 1.0;
+#endif
+        o.uvgrab.xy = (float2(o.vertex.x, o.vertex.y*scale) + o.vertex.w) * 0.5;
+        o.uvgrab.zw = o.vertex.zw;
+        o.color = v.color;
+        return o;
+    }
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            fixed4 _Color;
-            fixed4 _OverlayColor;
+    sampler2D _GrabTexture;
+    float4 _GrabTexture_TexelSize;
+    uniform float _Radius;
+    uniform float _BlurMultiplier = 1;
 
-            v2f vert(appdata_t v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
-                o.color = v.color;
-                return o;
-            }
+    half4 frag(v2f i) : COLOR{
+        _Radius *= _BlurMultiplier;
+        _Radius *= i.color.a;
+        half4 sum = half4(0,0,0,0);
+#define GRABPIXEL(weight,kernely) tex2Dproj( _GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x, i.uvgrab.y + _GrabTexture_TexelSize.y * kernely*_Radius, i.uvgrab.z, i.uvgrab.w))) * weight
 
-            half4 frag(v2f i) : SV_Target
-            {
-                half4 texCol = tex2D(_MainTex, i.uv);
-                half4 col = texCol * _Color * i.color;
-                col = col * (1 - _OverlayColor.a) + _OverlayColor * _OverlayColor.a;
-                return col;
-            }
-            ENDCG
-        }
+        sum += GRABPIXEL(0.05, -4.0);
+        sum += GRABPIXEL(0.09, -3.0);
+        sum += GRABPIXEL(0.12, -2.0);
+        sum += GRABPIXEL(0.15, -1.0);
+        sum += GRABPIXEL(0.18,  0.0);
+        sum += GRABPIXEL(0.15, +1.0);
+        sum += GRABPIXEL(0.12, +2.0);
+        sum += GRABPIXEL(0.09, +3.0);
+        sum += GRABPIXEL(0.05, +4.0);
+
+        return sum;
+    }
+        ENDCG
+    }
+
+        GrabPass{
+        Tags{ "LightMode" = "Always" }
+    }
+        Pass{
+        Tags{ "LightMode" = "Always" }
+
+        CGPROGRAM
+#pragma vertex vert
+#pragma fragment frag
+#pragma fragmentoption ARB_precision_hint_fastest
+#include "UnityCG.cginc"
+
+        struct appdata_t {
+        float4 vertex : POSITION;
+        float2 texcoord: TEXCOORD0;
+        float4 color: COLOR;
+    };
+
+    struct v2f
+    {
+        float4 vertex : POSITION;
+        float4 uvgrab : TEXCOORD0;
+        float2 uvmain : TEXCOORD1;
+        float4 color : COLOR;
+    };
+
+    float4 _MainTex_ST;
+
+    v2f vert(appdata_t v) {
+        v2f o;
+        o.vertex = UnityObjectToClipPos(v.vertex);
+#if UNITY_UV_STARTS_AT_TOP
+        float scale = -1.0;
+#else
+        float scale = 1.0;
+#endif
+        o.uvgrab.xy = (float2(o.vertex.x, o.vertex.y*scale) + o.vertex.w) * 0.5;
+        o.uvgrab.zw = o.vertex.zw;
+        o.uvmain = TRANSFORM_TEX(v.texcoord, _MainTex);
+        o.color = v.color;
+        return o;
+    }
+
+    fixed4 _Color;
+    fixed4 _OverlayColor;
+    sampler2D _GrabTexture;
+    float4 _GrabTexture_TexelSize;
+    sampler2D _MainTex;
+
+    half4 frag(v2f i) : COLOR
+    {
+        half4 blurredCol = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab)); // Gets the color of what is behind it and blurred
+        half4 texCol = tex2D(_MainTex, i.uvmain); // Gets the color of the supplied texture
+        half4 tint = texCol * _Color; // Gets the tint color to apply
+
+        half4 col = blurredCol * tint; // Tints the color
+        col = col * (1 - _OverlayColor.a) + _OverlayColor * _OverlayColor.a; // Blends it with the overlay color
+        col *= i.color;
+        col = blurredCol * (1 - texCol.a) + col * texCol.a; // Blends it using the tex color so transparent regions stay transparent
+        
+        return col;
+    }
+        ENDCG
+    }
+    }
     }
 }

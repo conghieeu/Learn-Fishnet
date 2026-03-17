@@ -40,7 +40,7 @@ public class Item : NetworkBehaviour, IInteractable
             return;
         }
 
-        Debug.Log($"[Item] ✅ {GetItemName()} x{amount} -> {player.playerName.Value}");
+        Debug.Log($"[Item] OK {GetItemName()} x{amount} -> {player.playerName.Value}");
 
         // 3. Despawn vật thể khỏi mạng
         ServerManager.Despawn(gameObject);
