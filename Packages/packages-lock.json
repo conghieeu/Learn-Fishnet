@@ -1,5 +1,24 @@
 {
   "dependencies": {
+    "com.coplaydev.unity-mcp": {
+      "version": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2",
+        "com.unity.test-framework": "1.1.31"
+      },
+      "hash": "b2d95d2638063e7bb36025df64bf02a9eba8a7c8"
+    },
+    "com.picoshot.localization": {
+      "version": "https://github.com/PicoShot/Localization-Unity.git?path=/Package",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.0"
+      },
+      "hash": "0b88a94fc063ca892f45d05795a14e3838ddc63c"
+    },
     "com.unity.burst": {
       "version": "1.8.27",
       "depth": 1,
@@ -209,6 +228,14 @@
         "com.unity.settings-manager": "2.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.textmeshpro": {
+      "version": "5.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
     },
     "com.unity.timeline": {
       "version": "1.8.10",

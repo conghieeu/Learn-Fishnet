@@ -40,6 +40,17 @@ MonoBehaviour:
     - FishNet.Demos
     - FishNet.Runtime
     - GameKit.Dependencies
+    - MCPForUnity.Runtime
+    - PicoShot.Localization
+    - QFSW.QC
+    - QFSW.QC.Demo
+    - QFSW.QC.Extras
+    - QFSW.QC.Grammar
+    - QFSW.QC.Parsers
+    - QFSW.QC.ScanRules
+    - QFSW.QC.Serializers
+    - QFSW.QC.Suggestors
+    - QFSW.QC.UI
     - VInspector
     - Wingman
     showAdvancedSettings: 0
