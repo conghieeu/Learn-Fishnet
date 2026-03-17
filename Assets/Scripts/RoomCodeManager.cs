@@ -38,7 +38,7 @@ public class RoomCodeManager : MonoBehaviour
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxConnections);
 
             // 2. Lấy join code từ allocation
-            currentRoomCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            // currentRoomCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             Debug.Log($"Mã phòng của mày là: {currentRoomCode}");
 

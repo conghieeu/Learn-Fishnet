@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2650105828297843982}
   - component: {fileID: 2659684629650716249}
-  - component: {fileID: 566039444818417034}
   - component: {fileID: 8744714563394019862}
   - component: {fileID: 2250146912914321518}
+  - component: {fileID: 5323401003245174067}
   - component: {fileID: -3692196265266303231}
   - component: {fileID: 7809179893741268184}
   m_Layer: 0
@@ -54,21 +54,6 @@ MonoBehaviour:
   _networkObjectCache: {fileID: -3692196265266303231}
   moveSpeed: 5
   rotateSpeed: 120
---- !u!114 &566039444818417034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3056348448977947623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8806b5498e92fcc44892a2d2be1770d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSave
-  _componentIndexCache: 1
-  _addedNetworkObject: {fileID: -3692196265266303231}
-  _networkObjectCache: {fileID: -3692196265266303231}
 --- !u!114 &8744714563394019862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +90,18 @@ MonoBehaviour:
   database: {fileID: 11400000, guid: a891cad5845f18443b7def10f80d57d9, type: 2}
   itemToAdd: {fileID: 11400000, guid: dbbbeb9a780df304b8b716ea9db57fbe, type: 2}
   amountToAdd: 1
+--- !u!114 &5323401003245174067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3056348448977947623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56bba46cfc860df4aa3555d29822f736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
 --- !u!114 &-3692196265266303231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,7 +122,7 @@ MonoBehaviour:
   <PredictedOwner>k__BackingField: {fileID: 0}
   NetworkBehaviours:
   - {fileID: 2659684629650716249}
-  - {fileID: 566039444818417034}
+  - {fileID: 0}
   - {fileID: 7809179893741268184}
   InitializedParentNetworkBehaviour: {fileID: 0}
   InitializedNestedNetworkObjects: []

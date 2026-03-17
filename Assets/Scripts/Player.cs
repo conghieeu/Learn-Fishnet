@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using UnityEngine;
@@ -29,7 +30,44 @@ public class Player : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
-        Debug.Log($"Server: Player spawned với Owner ID: {OwnerId}");
+        Debug.Log($"[Player] ▶ Server: Player spawned | Owner ID: {OwnerId} | Vị trí: {transform.position}");
+    }
+
+    /// <summary>
+    /// Được gọi TRƯỚC KHI player bị despawn trên Server.
+    /// Đây là lúc an toàn nhất để lưu data vì object vẫn còn tồn tại.
+    /// </summary>
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+
+        Debug.Log($"[Player] ⏹ OnStopServer | Owner ID: {OwnerId} | Vị trí: {transform.position}");
+
+        // Lưu data trước khi bị despawn
+        if (PlayerDataManager.Instance != null)
+        {
+            InventoryHandler inventory = GetComponent<InventoryHandler>();
+            List<ItemSaveData> items = null;
+
+            if (inventory != null)
+            {
+                items = new List<ItemSaveData>(inventory.Slots);
+                Debug.Log($"[Player] 📦 Inventory có {items.Count} slots");
+            }
+
+            PlayerDataManager.Instance.SavePlayerData(
+                (int)OwnerId,
+                transform.position,
+                transform.rotation,
+                items
+            );
+
+            Debug.Log($"[Player] 💾 Đã lưu data cho Owner {OwnerId} tại {transform.position}");
+        }
+        else
+        {
+            Debug.LogWarning("[Player] ⚠ PlayerDataManager.Instance == null, KHÔNG THỂ LƯU!");
+        }
     }
 
     private void Update()
@@ -69,7 +107,7 @@ public class Player : NetworkBehaviour
 
         if (IsOwner)
         {
-            Debug.Log("Player của mình đã bị despawn.");
+            Debug.Log("[Player] Player của mình đã bị despawn.");
         }
     }
 }

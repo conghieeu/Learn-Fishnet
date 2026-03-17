@@ -16,7 +16,7 @@ public class InventoryHandler : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
-        // Khởi tạo danh sách slot trống khi server bắt đầu
+        // Chỉ khởi tạo slot trống nếu chưa được nạp data từ save
         if (Slots.Count == 0)
         {
             for (int i = 0; i < MaxSlots; i++) Slots.Add(ItemSaveData.Empty());
@@ -41,7 +41,7 @@ public class InventoryHandler : NetworkBehaviour
 
                 ItemSaveData updatedItem = Slots[i];
                 updatedItem.Amount += adding;
-                Slots[i] = updatedItem; // Cập nhật SyncList
+                Slots[i] = updatedItem;
 
                 amount -= adding;
                 if (amount <= 0) return true;
@@ -61,7 +61,7 @@ public class InventoryHandler : NetworkBehaviour
             }
         }
 
-        return amount <= 0; // Trả về true nếu đã nhét hết đồ
+        return amount <= 0;
     }
 
     [Server]
@@ -94,27 +94,24 @@ public class InventoryHandler : NetworkBehaviour
 
     #endregion
 
-    #region LƯU VÀ TẢI (EASY SAVE 3)
+    #region NẠP DATA TỪ SAVE
 
+    /// <summary>
+    /// Nạp dữ liệu inventory từ save (được gọi bởi PlayerSpawner sau khi spawn).
+    /// </summary>
     [Server]
-    public void SaveInventory()
+    public void SetSlots(List<ItemSaveData> savedItems)
     {
-        List<ItemSaveData> dataToSave = new List<ItemSaveData>(Slots);
-        ES3.Save("Inventory_Test", dataToSave);
-    }
-
-    [Server]
-    public void LoadInventory()
-    {
-        if (ES3.KeyExists("Inventory_Test"))
+        Slots.Clear();
+        foreach (var item in savedItems)
         {
-            List<ItemSaveData> loadedData = ES3.Load<List<ItemSaveData>>("Inventory_Test");
-            
-            Slots.Clear();
-            foreach (var item in loadedData) Slots.Add(item);
-            
-            while (Slots.Count < MaxSlots) Slots.Add(ItemSaveData.Empty());
+            Slots.Add(item);
         }
+
+        // Đảm bảo đủ số slot
+        while (Slots.Count < MaxSlots) Slots.Add(ItemSaveData.Empty());
+
+        Debug.Log($"[InventoryHandler] Đã nạp {savedItems.Count} slots từ save data.");
     }
 
     #endregion

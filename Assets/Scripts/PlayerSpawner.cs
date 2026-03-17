@@ -1,28 +1,28 @@
 using FishNet;
 using FishNet.Connection;
-using FishNet.Managing;
-using FishNet.Managing.Scened;
 using FishNet.Object;
-using FishNet.Transporting;
 using UnityEngine;
 
+/// <summary>
+/// Quản lý spawn player theo luồng chuẩn FishNet:
+/// 1. Client kết nối → Server load data → Spawn tại vị trí đã lưu
+/// 2. Auto-save khi despawn được xử lý bởi Player.OnStopServer()
+/// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
     [Header("Cài đặt Spawn")]
     [Tooltip("Kéo prefab Player vào đây (prefab phải có NetworkObject)")]
     [SerializeField] private NetworkObject playerPrefab;
 
-    [Tooltip("Vị trí spawn (để trống thì spawn tại Vector3.zero)")]
+    [Tooltip("Vị trí spawn mặc định (cho player mới chưa có save)")]
     [SerializeField] private Transform[] spawnPoints;
 
     private void Start()
     {
-        // Dùng SceneManager.OnClientLoadedStartScenes — event này chạy SAU KHI
-        // FishNet đã set xong flag LoadedStartScenes, đảm bảo an toàn để spawn.
         if (InstanceFinder.SceneManager != null)
             InstanceFinder.SceneManager.OnClientLoadedStartScenes += OnClientLoadedStartScenes;
         else
-            Debug.LogWarning("PlayerSpawner: SceneManager chưa sẵn sàng.");
+            Debug.LogWarning("[PlayerSpawner] ⚠ SceneManager chưa sẵn sàng!");
     }
 
     private void OnDisable()
@@ -32,39 +32,75 @@ public class PlayerSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Được gọi SAU KHI client đã tải xong start scenes và flag đã được set.
+    /// Client đã tải xong scene → Load data → Spawn player.
     /// </summary>
     private void OnClientLoadedStartScenes(NetworkConnection conn, bool asServer)
     {
-        // Chỉ xử lý trên server
         if (!asServer) return;
 
+        Debug.Log($"[PlayerSpawner] 🔔 Client {conn.ClientId} đã tải xong scene, bắt đầu spawn...");
         SpawnPlayer(conn);
     }
 
     /// <summary>
-    /// Spawn player prefab cho connection chỉ định.
+    /// LUỒNG CHÍNH: Load data trước → Spawn player tại vị trí đã lưu.
     /// </summary>
     private void SpawnPlayer(NetworkConnection conn)
     {
-        // Chọn vị trí spawn
+        int clientId = (int)conn.ClientId;
+
+        // Vị trí mặc định
         Vector3 spawnPos = Vector3.zero;
         Quaternion spawnRot = Quaternion.identity;
 
         if (spawnPoints != null && spawnPoints.Length > 0)
         {
-            // Chọn spawn point theo thứ tự vòng tròn dựa trên ClientId
-            int index = (int)(conn.ClientId % spawnPoints.Length);
+            int index = clientId % spawnPoints.Length;
             spawnPos = spawnPoints[index].position;
             spawnRot = spawnPoints[index].rotation;
         }
 
-        // Tạo player object trên server
+        // ===== BƯỚC 1: Load data từ save =====
+        PlayerData? savedData = null;
+
+        if (PlayerDataManager.Instance != null)
+        {
+            savedData = PlayerDataManager.Instance.LoadPlayerData(clientId);
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerSpawner] ⚠ PlayerDataManager chưa có trên scene!");
+        }
+
+        if (savedData.HasValue)
+        {
+            spawnPos = savedData.Value.Position;
+            spawnRot = savedData.Value.Rotation;
+            Debug.Log($"[PlayerSpawner] 📂 Client {clientId}: CÓ save data → spawn tại {spawnPos}");
+        }
+        else
+        {
+            Debug.Log($"[PlayerSpawner] 🆕 Client {clientId}: CHƯA có save → spawn tại spawn point mặc định {spawnPos}");
+        }
+
+        // ===== BƯỚC 2: Spawn player =====
         NetworkObject playerObj = Instantiate(playerPrefab, spawnPos, spawnRot);
-
-        // Spawn trên mạng và gán quyền sở hữu cho client đó
         InstanceFinder.ServerManager.Spawn(playerObj, conn);
+        Debug.Log($"[PlayerSpawner] ✅ Đã spawn player cho Client {clientId} tại {spawnPos}");
 
-        Debug.Log($"Đã spawn player cho Client ID: {conn.ClientId} tại {spawnPos}");
+        // ===== BƯỚC 3: Nạp inventory (nếu có save) =====
+        if (savedData.HasValue && savedData.Value.InventoryItems != null)
+        {
+            InventoryHandler inventory = playerObj.GetComponent<InventoryHandler>();
+            if (inventory != null)
+            {
+                inventory.SetSlots(savedData.Value.InventoryItems);
+                Debug.Log($"[PlayerSpawner] 📦 Client {clientId}: Đã nạp {savedData.Value.InventoryItems.Count} slots inventory");
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerSpawner] ⚠ Client {clientId}: Không tìm thấy InventoryHandler trên player!");
+            }
+        }
     }
 }
