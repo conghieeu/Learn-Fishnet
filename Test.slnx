@@ -25,6 +25,7 @@
   <Project Path="Unity.Services.QoS.csproj" />
   <Project Path="QFSW.QC.csproj" />
   <Project Path="Unity.Services.Authentication.Editor.csproj" />
+  <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
   <Project Path="QFSW.QC.Grammar.csproj" />
   <Project Path="GameKit.Dependencies.csproj" />
