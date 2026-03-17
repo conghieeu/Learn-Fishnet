@@ -141,27 +141,11 @@ public class Player : NetworkBehaviour
         }
     }
 
-    [Header("Tương tác")]
-    [SerializeField] private float interactionRange = 3f;
-    [SerializeField] private LayerMask interactionLayer;
-    private IInteractable currentInteractable;
-
-    [ServerRpc]
-    private void ServerMovePlayer(float horizontal, float vertical)
-    {
-        Vector3 move = transform.forward * vertical * moveSpeed * Time.deltaTime;
-        transform.position += move;
-
-        float rotation = horizontal * rotateSpeed * Time.deltaTime;
-        transform.Rotate(0f, rotation, 0f);
-    }
-
     private void Update()
     {
         if (!IsOwner) return;
 
         HandleMovement();
-        HandleInteraction();
     }
 
     private void HandleMovement()
@@ -175,58 +159,14 @@ public class Player : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Check vật thể trước mặt và xử lý đầu vào nhấn phím tương tác.
-    /// </summary>
-    private void HandleInteraction()
-    {
-        // 1. Raycast tìm vật thể tương tác
-        Ray ray = new Ray(transform.position + Vector3.up * 1.5f, transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactionRange, interactionLayer))
-        {
-            if (hit.collider.TryGetComponent(out IInteractable interactable))
-            {
-                if (currentInteractable != interactable)
-                {
-                    currentInteractable = interactable;
-                    Debug.Log($"[Interaction] Nhìn vào: {currentInteractable.InteractionPrompt}");
-                    // TODO: Hiển thị Prompt lên UI Client
-                }
-
-                // 2. Nhấn E để tương tác
-                if (Input.GetKeyDown(KeyCode.E))
-                {
-                    ServerInteract(hit.collider.gameObject);
-                }
-            }
-            else
-            {
-                currentInteractable = null;
-            }
-        }
-        else
-        {
-            currentInteractable = null;
-        }
-    }
-
-    /// <summary>
-    /// Gửi lệnh tương tác lên Server.
-    /// </summary>
-    /// <param name="target">Vật thể muốn tương tác.</param>
     [ServerRpc]
-    private void ServerInteract(GameObject target)
+    private void ServerMovePlayer(float horizontal, float vertical)
     {
-        if (target == null) return;
+        Vector3 move = transform.forward * vertical * moveSpeed * Time.deltaTime;
+        transform.position += move;
 
-        // Kiểm tra khoảng cách một lần nữa trên Server để tránh hack
-        float dist = Vector3.Distance(transform.position, target.transform.position);
-        if (dist > interactionRange + 1f) return; 
-
-        if (target.TryGetComponent(out IInteractable interactable))
-        {
-            interactable.Interact(this);
-        }
+        float rotation = horizontal * rotateSpeed * Time.deltaTime;
+        transform.Rotate(0f, rotation, 0f);
     }
 
     public override void OnStopClient()
