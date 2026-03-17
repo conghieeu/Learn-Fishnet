@@ -75,7 +75,7 @@ public class PlayerInteraction : NetworkBehaviour
         if (target.TryGetComponent(out IInteractable interactable))
         {
             // Ép kiểu player để truyền vào hàm Interact
-            Player player = GetComponent<Player>();
+            PlayerNetworking player = GetComponent<PlayerNetworking>();
             if (player != null)
             {
                 interactable.Interact(player);

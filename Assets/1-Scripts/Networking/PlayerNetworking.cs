@@ -4,7 +4,7 @@ using FishNet.Object.Synchronizing;
 using UnityEngine;
 
 [RequireComponent(typeof(FishNet.Component.Transforming.NetworkTransform))]
-public class Player : NetworkBehaviour
+public class PlayerNetworking : NetworkBehaviour
 {
     [Header("Di chuyển")]
     [SerializeField] private float moveSpeed = 5f;

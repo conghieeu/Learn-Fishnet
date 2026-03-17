@@ -14,5 +14,5 @@ public interface IInteractable
     /// Sẽ được gọi từ phía Server để đảm bảo tính đồng bộ.
     /// </summary>
     /// <param name="player">Người chơi thực hiện tương tác.</param>
-    void Interact(Player player);
+    void Interact(PlayerNetworking player);
 }

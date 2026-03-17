@@ -169,9 +169,9 @@ public class GameTester : MonoBehaviour
     /// <summary>
     /// Tìm local player (player thuộc về mình).
     /// </summary>
-    private Player FindLocalPlayer()
+    private PlayerNetworking FindLocalPlayer()
     {
-        foreach (var player in FindObjectsByType<Player>(FindObjectsSortMode.None))
+        foreach (var player in FindObjectsByType<PlayerNetworking>(FindObjectsSortMode.None))
         {
             if (player.IsOwner) return player;
         }

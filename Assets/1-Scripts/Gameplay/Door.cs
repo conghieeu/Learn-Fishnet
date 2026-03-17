@@ -20,7 +20,7 @@ public class Door : NetworkBehaviour, IInteractable
     public string InteractionPrompt => isOpen.Value ? "Nhấn [E] để đóng cửa" : "Nhấn [E] để mở cửa";
 
     // Interface: Logic tương tác (Chạy trên Server)
-    public void Interact(Player player)
+    public void Interact(PlayerNetworking player)
     {
         isOpen.Value = !isOpen.Value;
         Debug.Log($"[Door] Cửa đã {(isOpen.Value ? "MỞ" : "ĐÓNG")} bởi {player.playerName.Value}");

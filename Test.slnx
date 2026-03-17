@@ -36,6 +36,7 @@
   <Project Path="QFSW.QC.Editor.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.csproj" />
   <Project Path="QFSW.QC.Parsers.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
@@ -70,7 +71,6 @@
   <Project Path="Unity.InputSystem.TestFramework.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="QFSW.QC.UI.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="ParrelSync.csproj" />
   <Project Path="Unity.Services.Core.Device.csproj" />
   <Project Path="Unity.Services.Core.Analytics.csproj" />

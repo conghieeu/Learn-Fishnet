@@ -21,7 +21,7 @@ public class Item : NetworkBehaviour, IInteractable
     public string InteractionPrompt => $"Nhấn [E] để nhặt {GetItemName()} (x{amount})";
 
     // Triển khai IInteractable: Logic xử lý khi nhấn tương tác (Chạy trên Server)
-    public void Interact(Player player)
+    public void Interact(PlayerNetworking player)
     {
         // 1. Kiểm tra inventory
         InventoryHandler inventory = player.GetComponent<InventoryHandler>();
