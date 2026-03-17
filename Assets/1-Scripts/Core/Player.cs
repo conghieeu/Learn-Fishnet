@@ -10,8 +10,15 @@ public class Player : NetworkBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotateSpeed = 120f;
 
-    // Tên người chơi - đồng bộ qua mạng cho tất cả client
+    /// <summary>
+    /// Tên người chơi — dùng làm save key, đồng bộ qua mạng.
+    /// </summary>
     public readonly SyncVar<string> playerName = new SyncVar<string>();
+
+    /// <summary>
+    /// Đánh dấu đã load data xong chưa.
+    /// </summary>
+    private bool hasLoadedData = false;
 
     public override void OnStartClient()
     {
@@ -19,11 +26,16 @@ public class Player : NetworkBehaviour
 
         if (IsOwner)
         {
-            Debug.Log("Đây là player của mình!");
+            Debug.Log("[Player] Đây là player của mình!");
+
+            // Gửi tên lên server để load data
+            string myName = PlayerPrefs.GetString("PlayerName", "Player");
+            Debug.Log($"[Player] 📤 Gửi tên [{myName}] lên server...");
+            ServerSetPlayerName(myName);
         }
         else
         {
-            Debug.Log($"Player khác đã xuất hiện (ID: {OwnerId})");
+            Debug.Log($"[Player] Player khác đã xuất hiện (ID: {OwnerId})");
         }
     }
 
@@ -34,16 +46,75 @@ public class Player : NetworkBehaviour
     }
 
     /// <summary>
+    /// Client gửi tên lên server. Server nhận tên → load data → teleport + nạp inventory.
+    /// </summary>
+    [ServerRpc]
+    private void ServerSetPlayerName(string name)
+    {
+        playerName.Value = name;
+        Debug.Log($"[Player] 📥 Server nhận tên [{name}] từ Owner {OwnerId}");
+
+        // Load data từ save
+        LoadSavedData(name);
+    }
+
+    /// <summary>
+    /// Server load data và áp dụng lên player.
+    /// </summary>
+    [Server]
+    private void LoadSavedData(string name)
+    {
+        if (PlayerDataManager.Instance == null)
+        {
+            Debug.LogWarning("[Player] ⚠ PlayerDataManager chưa có trên scene!");
+            return;
+        }
+
+        PlayerData? savedData = PlayerDataManager.Instance.LoadPlayerData(name);
+
+        if (savedData.HasValue)
+        {
+            // Teleport tới vị trí đã lưu
+            transform.position = savedData.Value.Position;
+            transform.rotation = savedData.Value.Rotation;
+            Debug.Log($"[Player] 📂 [{name}] → Teleport tới {savedData.Value.Position}");
+
+            // Nạp inventory
+            if (savedData.Value.InventoryItems != null)
+            {
+                InventoryHandler inventory = GetComponent<InventoryHandler>();
+                if (inventory != null)
+                {
+                    inventory.SetSlots(savedData.Value.InventoryItems);
+                    Debug.Log($"[Player] 📦 [{name}] → Đã nạp {savedData.Value.InventoryItems.Count} slots inventory");
+                }
+            }
+
+            hasLoadedData = true;
+        }
+        else
+        {
+            Debug.Log($"[Player] 🆕 [{name}] → Chưa có save, giữ vị trí mặc định");
+        }
+    }
+
+    /// <summary>
     /// Được gọi TRƯỚC KHI player bị despawn trên Server.
-    /// Đây là lúc an toàn nhất để lưu data vì object vẫn còn tồn tại.
+    /// Auto-save data vào ES3.
     /// </summary>
     public override void OnStopServer()
     {
         base.OnStopServer();
 
-        Debug.Log($"[Player] ⏹ OnStopServer | Owner ID: {OwnerId} | Vị trí: {transform.position}");
+        string name = playerName.Value;
+        Debug.Log($"[Player] ⏹ OnStopServer | [{name}] | Vị trí: {transform.position}");
 
-        // Lưu data trước khi bị despawn
+        if (string.IsNullOrEmpty(name))
+        {
+            Debug.LogWarning("[Player] ⚠ playerName rỗng, không thể save!");
+            return;
+        }
+
         if (PlayerDataManager.Instance != null)
         {
             InventoryHandler inventory = GetComponent<InventoryHandler>();
@@ -52,17 +123,17 @@ public class Player : NetworkBehaviour
             if (inventory != null)
             {
                 items = new List<ItemSaveData>(inventory.Slots);
-                Debug.Log($"[Player] 📦 Inventory có {items.Count} slots");
+                Debug.Log($"[Player] 📦 [{name}] → Inventory có {items.Count} slots");
             }
 
             PlayerDataManager.Instance.SavePlayerData(
-                (int)OwnerId,
+                name,
                 transform.position,
                 transform.rotation,
                 items
             );
 
-            Debug.Log($"[Player] 💾 Đã lưu data cho Owner {OwnerId} tại {transform.position}");
+            Debug.Log($"[Player] 💾 Đã lưu [{name}] tại {transform.position}");
         }
         else
         {
@@ -72,31 +143,23 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        // Chỉ owner mới gửi input lên server
         if (!IsOwner) return;
 
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
-        // Có input thì mới gửi lên server
         if (horizontal != 0f || vertical != 0f)
         {
             ServerMovePlayer(horizontal, vertical);
         }
     }
 
-    /// <summary>
-    /// Owner gửi input lên Server, Server di chuyển player.
-    /// NetworkTransform tự động đồng bộ vị trí cho tất cả client.
-    /// </summary>
     [ServerRpc]
     private void ServerMovePlayer(float horizontal, float vertical)
     {
-        // Di chuyển
         Vector3 move = transform.forward * vertical * moveSpeed * Time.deltaTime;
         transform.position += move;
 
-        // Xoay
         float rotation = horizontal * rotateSpeed * Time.deltaTime;
         transform.Rotate(0f, rotation, 0f);
     }
@@ -104,7 +167,6 @@ public class Player : NetworkBehaviour
     public override void OnStopClient()
     {
         base.OnStopClient();
-
         if (IsOwner)
         {
             Debug.Log("[Player] Player của mình đã bị despawn.");

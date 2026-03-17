@@ -31,7 +31,7 @@ public class InventoryHandler : NetworkBehaviour
         ItemSO metadata = Database.GetItemByID(id);
         if (metadata == null) return false;
 
-        // BƯỚC 1: Tìm slot đã có vật phẩm này và chưa đầy để cộng dồn (Stacking)
+        // Cộng dồn vào slot đã có
         for (int i = 0; i < Slots.Count; i++)
         {
             if (Slots[i].ItemID == id && Slots[i].Amount < metadata.MaxStack)
@@ -48,7 +48,7 @@ public class InventoryHandler : NetworkBehaviour
             }
         }
 
-        // BƯỚC 2: Nếu còn dư, tìm slot trống để nhét vào
+        // Nhét vào slot trống
         for (int i = 0; i < Slots.Count; i++)
         {
             if (Slots[i].IsEmpty)
@@ -72,14 +72,7 @@ public class InventoryHandler : NetworkBehaviour
         ItemSaveData updatedItem = Slots[slotIndex];
         updatedItem.Amount -= amount;
 
-        if (updatedItem.Amount <= 0)
-        {
-            Slots[slotIndex] = ItemSaveData.Empty();
-        }
-        else
-        {
-            Slots[slotIndex] = updatedItem;
-        }
+        Slots[slotIndex] = updatedItem.Amount <= 0 ? ItemSaveData.Empty() : updatedItem;
     }
 
     [Server]
@@ -97,21 +90,18 @@ public class InventoryHandler : NetworkBehaviour
     #region NẠP DATA TỪ SAVE
 
     /// <summary>
-    /// Nạp dữ liệu inventory từ save (được gọi bởi PlayerSpawner sau khi spawn).
+    /// Nạp dữ liệu inventory từ save (gọi bởi Player.cs sau khi nhận tên).
     /// </summary>
     [Server]
     public void SetSlots(List<ItemSaveData> savedItems)
     {
         Slots.Clear();
         foreach (var item in savedItems)
-        {
             Slots.Add(item);
-        }
 
-        // Đảm bảo đủ số slot
         while (Slots.Count < MaxSlots) Slots.Add(ItemSaveData.Empty());
 
-        Debug.Log($"[InventoryHandler] Đã nạp {savedItems.Count} slots từ save data.");
+        Debug.Log($"[Inventory] Đã nạp {savedItems.Count} slots từ save.");
     }
 
     #endregion

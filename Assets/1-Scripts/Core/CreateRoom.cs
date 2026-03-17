@@ -1,41 +1,58 @@
 using FishNet;
-using FishNet.Managing;
-using FishNet.Transporting;
 using UnityEngine;
 
 public class CreateRoom : MonoBehaviour
 {
-    // Hàm này để mày làm Host (Vừa là Server vừa là Client)
+    [Header("Save Slot")]
+    [Tooltip("Tên world save (host nhập trước khi tạo phòng)")]
+    public string saveSlot = "DefaultWorld";
+
+    /// <summary>
+    /// Tạo phòng (Host Mode). Set save slot trước khi start server.
+    /// </summary>
+    [ContextMenu("Tạo Phòng")]
     public void StartHost()
     {
         if (InstanceFinder.NetworkManager == null) return;
-        
-        // Bắt đầu Server
+
+        // Set save slot cho PlayerDataManager
+        if (PlayerDataManager.Instance != null)
+        {
+            PlayerDataManager.Instance.SaveSlot = saveSlot;
+            Debug.Log($"[CreateRoom] 📁 Save Slot: {saveSlot}");
+        }
+
         InstanceFinder.ServerManager.StartConnection();
-        // Bắt đầu Client để chính mày cũng vào được phòng đó
         InstanceFinder.ClientManager.StartConnection();
-        
-        Debug.Log("Đã tạo phòng (Host Mode)");
+
+        Debug.Log($"[CreateRoom] ✅ Đã tạo phòng (Host Mode) | World: {saveSlot}");
     }
 
-    // Hàm này để người khác tham gia vào phòng qua IP
+    /// <summary>
+    /// Client join phòng qua IP.
+    /// </summary>
     public void JoinRoom(string ipAddress)
     {
         if (InstanceFinder.NetworkManager == null) return;
 
-        // Thiết lập địa chỉ IP của máy chủ (mặc định là localhost)
         InstanceFinder.TransportManager.Transport.SetClientAddress(ipAddress);
-        
-        // Bắt đầu kết nối với tư cách Client
         InstanceFinder.ClientManager.StartConnection();
-        
-        Debug.Log($"Đang kết nối tới: {ipAddress}");
+
+        Debug.Log($"[CreateRoom] Đang kết nối tới: {ipAddress}");
     }
 
-    // Hàm để thoát hoặc đóng phòng
+    /// <summary>
+    /// Thoát phòng. Player.OnStopServer() sẽ auto-save.
+    /// </summary>
+    [ContextMenu("Thoát Phòng")]
     public void LeaveRoom()
     {
-        InstanceFinder.ServerManager.StopConnection(true); // Đóng server nếu là host
-        InstanceFinder.ClientManager.StopConnection();      // Thoát client
+        if (InstanceFinder.ServerManager != null && InstanceFinder.ServerManager.Started)
+            InstanceFinder.ServerManager.StopConnection(true);
+
+        if (InstanceFinder.ClientManager != null && InstanceFinder.ClientManager.Started)
+            InstanceFinder.ClientManager.StopConnection();
+
+        Debug.Log("[CreateRoom] 🔴 Đã thoát phòng!");
     }
 }

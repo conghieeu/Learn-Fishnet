@@ -150,6 +150,101 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &287867805
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 287867807}
+  - component: {fileID: 287867806}
+  m_Layer: 0
+  m_Name: CreateRoom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &287867806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287867805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3328ab9cb238aa49bc3a6c0e1b1ba4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreateRoom
+  saveSlot: DefaultWorld
+--- !u!4 &287867807
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287867805}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &650350668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 650350670}
+  - component: {fileID: 650350669}
+  m_Layer: 0
+  m_Name: GameTester
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &650350669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650350668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e56bdaef232b80a4f8c6eb69a0122700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameTester
+  testPlayerName: TestPlayer
+  testSaveSlot: TestWorld
+  createRoom: {fileID: 287867806}
+  database: {fileID: 11400000, guid: a891cad5845f18443b7def10f80d57d9, type: 2}
+  testItem: {fileID: 11400000, guid: dbbbeb9a780df304b8b716ea9db57fbe, type: 2}
+  testAmount: 1
+--- !u!4 &650350670
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650350668}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1240045275
 GameObject:
   m_ObjectHideFlags: 0
@@ -181,6 +276,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoomCodeManager
   currentRoomCode: ZXC212
   maxConnections: 4
+  saveSlot: DefaultWorld
 --- !u!4 &1240045277
 Transform:
   m_ObjectHideFlags: 0
@@ -567,3 +663,5 @@ SceneRoots:
   - {fileID: 191522915}
   - {fileID: 1578244301}
   - {fileID: 1914659857}
+  - {fileID: 287867807}
+  - {fileID: 650350670}
