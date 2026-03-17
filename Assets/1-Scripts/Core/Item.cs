@@ -2,12 +2,14 @@ using UnityEngine;
 using FishNet.Object;
 using FishNet.Connection;
 
-public class Item : NetworkBehaviour
+/// <summary>
+/// Thừa kế IInteractable để cho phép người chơi tương tác nhặt đồ.
+/// </summary>
+public class Item : NetworkBehaviour, IInteractable
 {
     [Header("Cài đặt Item")]
     [Tooltip("ID phải trùng với ItemSO.ItemID trong Database")]
     [SerializeField] private string itemID;
-    [SerializeField] private float pickupRange = 2f;
     [SerializeField] private int amount = 1;
 
     [Header("Tham chiếu")]
@@ -15,61 +17,32 @@ public class Item : NetworkBehaviour
 
     public string ItemID => itemID;
 
-    /// <summary>
-    /// Nhặt item — kiểm tra khoảng cách, thêm vào inventory, despawn.
-    /// </summary>
-    [ServerRpc(RequireOwnership = false)]
-    public void ServerPickup(NetworkConnection caller = null)
+    // Triển khai IInteractable: Nội dung hiển thị khi nhìn vào
+    public string InteractionPrompt => $"Nhấn [E] để nhặt {GetItemName()} (x{amount})";
+
+    // Triển khai IInteractable: Logic xử lý khi nhấn tương tác (Chạy trên Server)
+    public void Interact(Player player)
     {
-        Player player = null;
-        NetworkObject playerObj = null;
-
-        foreach (var obj in caller.Objects)
-        {
-            player = obj.GetComponent<Player>();
-            if (player != null) { playerObj = obj; break; }
-        }
-
-        if (player == null)
-        {
-            Debug.LogWarning("[Item] Không tìm thấy Player!");
-            return;
-        }
-
-        // Kiểm tra khoảng cách
-        float distance = Vector3.Distance(transform.position, playerObj.transform.position);
-        if (distance > pickupRange)
-        {
-            Debug.Log($"[Item] {GetItemName()} quá xa! ({distance:F1}/{pickupRange})");
-            return;
-        }
-
-        // Thêm vào inventory
-        InventoryHandler inventory = playerObj.GetComponent<InventoryHandler>();
+        // 1. Kiểm tra inventory
+        InventoryHandler inventory = player.GetComponent<InventoryHandler>();
         if (inventory == null)
         {
-            Debug.LogWarning("[Item] Player không có InventoryHandler!");
+            Debug.LogWarning($"[Item] {player.playerName.Value} không có InventoryHandler!");
             return;
         }
 
+        // 2. Thêm vào inventory
         bool added = inventory.AddItem(itemID, amount);
         if (!added)
         {
-            Debug.Log($"[Item] Inventory đầy!");
+            Debug.Log($"[Item] Inventory của {player.playerName.Value} đã đầy!");
+            // TODO: Gửi UI thông báo "Inventory Full" cho Client
             return;
         }
 
-        Debug.Log($"[Item] ✅ {GetItemName()} x{amount} → inventory Client {caller.ClientId}");
-        ServerManager.Despawn(gameObject);
-    }
+        Debug.Log($"[Item] ✅ {GetItemName()} x{amount} -> {player.playerName.Value}");
 
-    /// <summary>
-    /// Xóa item khỏi mạng.
-    /// </summary>
-    [ServerRpc(RequireOwnership = false)]
-    public void ServerDestroyItem(NetworkConnection caller = null)
-    {
-        Debug.Log($"[Item] {GetItemName()} bị hủy bởi Client {caller.ClientId}");
+        // 3. Despawn vật thể khỏi mạng
         ServerManager.Despawn(gameObject);
     }
 
@@ -81,5 +54,14 @@ public class Item : NetworkBehaviour
             if (metadata != null) return metadata.ItemName;
         }
         return itemID;
+    }
+
+    /// <summary>
+    /// Xóa item khỏi mạng (Giữ lại dùng cho debug hoặc admin).
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    public void ServerDestroyItem(NetworkConnection caller = null)
+    {
+        ServerManager.Despawn(gameObject);
     }
 }

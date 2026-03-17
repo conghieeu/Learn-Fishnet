@@ -17,7 +17,7 @@ public class GameTester : MonoBehaviour
     public string testSaveSlot = "TestWorld";
 
     [Header("Tham chiếu (Kéo thả)")]
-    public CreateRoom createRoom;
+    public ConnectionManager connectionManager;
     public ItemDatabaseSO database;
 
     [Header("Test Inventory")]
@@ -42,14 +42,14 @@ public class GameTester : MonoBehaviour
     [ContextMenu("2. Tạo Phòng (Host)")]
     public void CreateTestRoom()
     {
-        if (createRoom == null)
+        if (connectionManager == null)
         {
-            Debug.LogError("[Test] ❌ Chưa gán CreateRoom!");
+            Debug.LogError("[Test] ❌ Chưa gán ConnectionManager!");
             return;
         }
 
-        createRoom.saveSlot = testSaveSlot;
-        createRoom.StartHost();
+        connectionManager.saveSlot = testSaveSlot;
+        connectionManager.StartHostLocal();
         Debug.Log($"[Test] ✅ Đã tạo phòng | World: {testSaveSlot} | Player: {testPlayerName}");
     }
 
@@ -131,9 +131,9 @@ public class GameTester : MonoBehaviour
     [ContextMenu("5. Thoát Phòng")]
     public void LeaveTestRoom()
     {
-        if (createRoom != null)
+        if (connectionManager != null)
         {
-            createRoom.LeaveRoom();
+            connectionManager.LeaveRoom();
             Debug.Log("[Test] 🔴 Đã thoát phòng (data đã auto-save)");
         }
     }
