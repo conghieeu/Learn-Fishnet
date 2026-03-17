@@ -90,4 +90,24 @@ public class RoomCodeManager : MonoBehaviour
             Debug.LogError($"Lỗi không xác định: {e.Message}");
         }
     }
+
+    // Hàm Thoát Phòng
+    [ContextMenu("Thoát Phòng")]
+    public void LeaveRoom()
+    {
+        // Nếu là Host → đóng server (tất cả player sẽ được auto-save qua Player.OnStopServer)
+        if (InstanceFinder.ServerManager != null && InstanceFinder.ServerManager.Started)
+        {
+            InstanceFinder.ServerManager.StopConnection(true);
+        }
+
+        // Ngắt kết nối client
+        if (InstanceFinder.ClientManager != null && InstanceFinder.ClientManager.Started)
+        {
+            InstanceFinder.ClientManager.StopConnection();
+        }
+
+        currentRoomCode = "";
+        Debug.Log("Đã thoát phòng!");
+    }
 }

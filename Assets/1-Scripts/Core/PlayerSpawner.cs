@@ -1,6 +1,7 @@
 using FishNet;
 using FishNet.Connection;
 using FishNet.Object;
+using FishNet.Transporting;
 using UnityEngine;
 
 /// <summary>
@@ -17,18 +18,68 @@ public class PlayerSpawner : MonoBehaviour
     [Tooltip("Vị trí spawn mặc định (cho player mới chưa có save)")]
     [SerializeField] private Transform[] spawnPoints;
 
-    private void Start()
+    private bool isSubscribed = false;
+
+    private void OnEnable()
     {
-        if (InstanceFinder.SceneManager != null)
-            InstanceFinder.SceneManager.OnClientLoadedStartScenes += OnClientLoadedStartScenes;
-        else
-            Debug.LogWarning("[PlayerSpawner] ⚠ SceneManager chưa sẵn sàng!");
+        SubscribeEvents();
     }
 
     private void OnDisable()
     {
+        UnsubscribeEvents();
+    }
+
+    private void SubscribeEvents()
+    {
+        if (isSubscribed) return;
+
+        // Đăng ký event spawn player
+        if (InstanceFinder.SceneManager != null)
+        {
+            InstanceFinder.SceneManager.OnClientLoadedStartScenes += OnClientLoadedStartScenes;
+            Debug.Log("[PlayerSpawner] ✅ Đã đăng ký OnClientLoadedStartScenes");
+        }
+
+        // Đăng ký event server state để tự động re-subscribe khi server restart
+        if (InstanceFinder.ServerManager != null)
+        {
+            InstanceFinder.ServerManager.OnServerConnectionState += OnServerConnectionState;
+            Debug.Log("[PlayerSpawner] ✅ Đã đăng ký OnServerConnectionState");
+        }
+
+        isSubscribed = true;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        if (!isSubscribed) return;
+
         if (InstanceFinder.SceneManager != null)
             InstanceFinder.SceneManager.OnClientLoadedStartScenes -= OnClientLoadedStartScenes;
+
+        if (InstanceFinder.ServerManager != null)
+            InstanceFinder.ServerManager.OnServerConnectionState -= OnServerConnectionState;
+
+        isSubscribed = false;
+    }
+
+    /// <summary>
+    /// Khi server start/stop → re-subscribe lại event để đảm bảo hoạt động sau khi thoát phòng rồi tạo lại.
+    /// </summary>
+    private void OnServerConnectionState(ServerConnectionStateArgs args)
+    {
+        if (args.ConnectionState == LocalConnectionState.Started)
+        {
+            Debug.Log("[PlayerSpawner] 🔄 Server đã khởi động lại → đăng ký lại events");
+
+            // Đăng ký lại event spawn (đảm bảo không bị duplicate)
+            if (InstanceFinder.SceneManager != null)
+            {
+                InstanceFinder.SceneManager.OnClientLoadedStartScenes -= OnClientLoadedStartScenes;
+                InstanceFinder.SceneManager.OnClientLoadedStartScenes += OnClientLoadedStartScenes;
+            }
+        }
     }
 
     /// <summary>
