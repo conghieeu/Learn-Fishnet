@@ -1,6 +1,12 @@
 using FishNet;
 using UnityEngine;
 
+/// <summary>
+/// ROLE: ROOM ACTIONS (UI-FACING)
+/// Script này dành cho các nút bấm trên giao diện (UI).
+/// Nhiệm vụ chính: Bắt đầu Host, Join phòng qua IP, và Dừng kết nối.
+/// Chạy trực tiếp qua MonoBehaviour (không cần NetworkObject).
+/// </summary>
 public class CreateRoom : MonoBehaviour
 {
     [Header("Save Slot")]

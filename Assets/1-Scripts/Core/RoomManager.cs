@@ -1,10 +1,15 @@
-using FishNet; // Thêm dòng này
+using FishNet;
 using FishNet.Connection;
 using FishNet.Managing;
 using FishNet.Object;
-using UnityEditor.TerrainTools;
 using UnityEngine;
 
+/// <summary>
+/// ROLE: SERVER LOGIC (NETWORK-FACING)
+/// Script này chạy sau khi server đã khởi động thành công.
+/// Nhiệm vụ chính: Theo dõi các sự kiện mạng (Player Join, Player Leave).
+/// Kế thừa NetworkBehaviour -> phải gắn trên GameObject có NetworkObject.
+/// </summary>
 public class RoomManager : NetworkBehaviour
 {
     public override void OnStartServer()

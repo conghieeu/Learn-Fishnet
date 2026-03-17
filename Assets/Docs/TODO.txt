@@ -1,0 +1,50 @@
+1. Hệ thống Tương tác Tổng quát (Generic Interaction System)
+Hiện tại mày đang viết logic nhặt đồ cứng trong class Item.cs (hàm ServerPickup). Nếu sau này mày muốn mở cửa, gạt cần gạt hay nói chuyện với NPC thì sao?
+Việc cần làm: Tạo một Interface IInteractable. Bất kỳ thứ gì trên đời có thể tương tác được (Item, Door, Chest, NPC) đều sẽ thực thi Interface này.
+Lợi ích: Player chỉ cần gọi một hàm Interact() duy nhất, không cần quan tâm thứ trước mặt là cái gì. Đây chính là cách tách logic (SoC) mà tao đã nhắc ở trên.
+
+2. UI Inventory hoàn chỉnh (Grid & Drag-and-Drop)
+Mày đã có dữ liệu trong SyncList<ItemSaveData>, nhưng hiện tại mới chỉ "Print" ra console để test. Game thì phải có cái để nhìn.
+Việc cần làm: Xây dựng hệ thống UI sử dụng kiến thức về Event-driven. Khi SyncList thay đổi, UI sẽ tự động cập nhật (Update Visual).
+Mưu mẹo: Thử làm tính năng kéo thả (Drag & Drop) để đổi chỗ các item giữa các slot hoặc vứt đồ ra ngoài đất (Drop item).
+
+3. Hệ thống Trang bị & Chỉ số (Equipment & Stats)
+Inventory là để chứa đồ, nhưng đồ đó phải có tác dụng.
+Việc cần làm: Mở rộng ItemSO.cs để thêm các thuộc tính như Sát thương, Phòng thủ, hoặc Tốc độ chạy.
+Logic: Tạo một class EquipmentHandler để quản lý việc người chơi đang mặc cái gì trên người. Khi mặc vào, nó sẽ cộng chỉ số vào Player.
+
+4. World Persistence (Lưu trạng thái thế giới)
+Mày mới chỉ lưu dữ liệu của Player vào PlayerDataManager.
+Vấn đề: Nếu mày nhặt một cái kiếm trên đất, thoát game rồi vào lại, cái kiếm đó có xuất hiện lại trên đất không? Nếu có thì game sẽ bị lỗi "dupe" đồ.
+Việc cần làm: Xây dựng hệ thống lưu trạng thái của các Object trong Scene. Nếu một Item đã bị Despawn (nhặt mất), server phải lưu lại trạng thái đó để lần sau mở phòng nó không hiện ra nữa.
+-------------------------------------
+
+1. Hệ thống Core & Vòng lặp
+Proximity Voice Chat (Voice theo khoảng cách).
+Round Manager (Quản lý trạng thái trận đấu).
+Game Loop Timer & Quota (Thời gian và chỉ tiêu thu hoạch).
+Lobby & Matchmaking System (Sảnh chờ và tìm trận).
+Spectator Mode (Chế độ quan sát khi chết).
+Terminal & Command System (Hệ thống máy tính điều khiển).
+
+2. Gameplay & Tương tác
+Generic Interaction System (Hệ thống tương tác dùng chung).
+Heavy Object Carry System (Logic bê vác đồ nặng).
+Stamina & Movement System (Thể lực và di chuyển).
+Inventory Hotbar UI (Thanh công cụ nhanh).
+Flashlight & Battery System (Đèn pin và quản lý pin).
+Global Map & Camera System (Hệ thống bản đồ và camera giám sát).
+
+3. Kẻ thù & Môi trường
+AI Monster State Machine (Máy trạng thái quái vật).
+Sound Detection AI (Quái vật nghe tiếng động).
+Procedural Map Spawner (Sinh bản đồ hoặc Scrap ngẫu nhiên).
+Door & Hazard System (Hệ thống cửa và cạm bẫy).
+World State Persistence (Lưu trạng thái đồ vật trong map).
+
+4. Nhân vật & Multiplayer
+Animation Syncing (Đồng bộ hành động người chơi).
+Health & Damage System (Máu và gây sát thương).
+Body Retrieval System (Hệ thống xác người chơi).
+Store & Purchasing System (Mua sắm trang bị).
+Anti-Cheat & Validation (Xác thực dữ liệu trên Server).
