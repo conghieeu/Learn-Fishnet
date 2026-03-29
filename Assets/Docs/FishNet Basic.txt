@@ -1,0 +1,37 @@
+// biến 
+public readonly SyncVar<int>() value = new SyncVar<int>(); 
+
+// check khi biến thay đổi 
+value.OnChange += OnColorChange()
+
+// hàm xử lý khi value thay đổi từ phía server rồi
+public void OnColorChange(int pre, int next, bool asServer){}
+
+// chỉ được gọi ở server, dùng cho bảo mật, logic, data
+[Server] void AddGold()
+
+// dùng với hiện ứng, giao diện, input
+[Client] void Animate()
+
+// client request to server
+[ServerRpc] void ServerUseItem()
+
+// Server to all client
+[ClientRpc] void ObserversRespawn()
+
+// Server to target client
+[TargetRpc] void TargetHello()
+
+// đối với các networkObject không phải owner
+[ServerRpc(RequireOwnership = false)]
+private void RpcSendChat(string msg, NetworkConnection conn = null)
+{
+    Debug.Log($"Received {msg} on the server from connection {conn.ClientId}.");
+}
+
+void Update()
+{
+    // check server
+    if(IsServer) AddCoin()
+    if(Client) Animate()
+}
