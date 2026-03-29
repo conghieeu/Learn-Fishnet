@@ -51,6 +51,8 @@ MonoBehaviour:
     - QFSW.QC.Serializers
     - QFSW.QC.Suggestors
     - QFSW.QC.UI
+    - SingularityGroup.HotReload.Runtime
+    - SingularityGroup.HotReload.Runtime.Public
     - VInspector
     - Wingman
     showAdvancedSettings: 0
