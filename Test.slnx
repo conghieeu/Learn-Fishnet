@@ -1,6 +1,5 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
-  <Project Path="ES3.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
   <Project Path="Unity.Services.Authentication.PlayerAccounts.csproj" />
   <Project Path="Unity.Services.Core.Internal.csproj" />
@@ -38,8 +37,8 @@
   <Project Path="Unity.Services.Core.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />
-  <Project Path="NewAssembly.csproj" />
   <Project Path="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.csproj" />
+  <Project Path="NewAssembly.csproj" />
   <Project Path="QFSW.QC.Parsers.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
   <Project Path="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.csproj" />
@@ -51,21 +50,21 @@
   <Project Path="Unity.FishNet.Codegen.csproj" />
   <Project Path="Unity.Services.Core.Configuration.Editor.csproj" />
   <Project Path="Unity.Services.Core.Configuration.csproj" />
-  <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="Unity.Services.Core.Environments.Internal.csproj" />
   <Project Path="PicoShot.Localization.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
-  <Project Path="VInspector.csproj" />
   <Project Path="FishNet.Demos.csproj" />
   <Project Path="Unity.Services.Core.Scheduler.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
   <Project Path="Unity.Services.Core.Telemetry.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Services.Core.Components.csproj" />
   <Project Path="SingularityGroup.HotReload.Runtime.Public.csproj" />
   <Project Path="Unity.Mathematics.Editor.csproj" />
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="QFSW.QC.Serializers.csproj" />
   <Project Path="PicoShot.Localization.Editor.csproj" />
+  <Project Path="Wingman.csproj" />
   <Project Path="Unity.Services.Core.Threading.csproj" />
   <Project Path="Unity.Services.Relay.Editor.csproj" />
   <Project Path="SingularityGroup.HotReload.Runtime.csproj" />
@@ -76,14 +75,12 @@
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="QFSW.QC.UI.csproj" />
   <Project Path="ParrelSync.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Services.Core.Device.csproj" />
   <Project Path="Unity.Services.Core.Analytics.csproj" />
   <Project Path="Unity.EditorCoroutines.Editor.csproj" />
   <Project Path="Unity.CollabProxy.Editor.csproj" />
   <Project Path="QFSW.QC.Demo.csproj" />
   <Project Path="Unity.Services.Authentication.Editor.Shared.csproj" />
-  <Project Path="Wingman.csproj" />
   <Project Path="QFSW.QC.Editor.Tools.csproj" />
   <Project Path="Unity.Services.Core.Registration.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />

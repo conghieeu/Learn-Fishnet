@@ -1703,7 +1703,28 @@ namespace FishNet.Component.Transforming
                     //No more in buffer, see if can extrapolate.
                     else
                     {
-                        /* If everything matches up then end queue.
+                        //PROSTART
+                        //Can extrapolate.
+                        if (td.ExtrapolationState == TransformData.ExtrapolateState.Available)
+                        {
+                            rd.TimeRemaining = (float)(_extrapolation * _timeManager.TickDelta);
+                            td.ExtrapolationState = TransformData.ExtrapolateState.Active;
+                            if (leftOver > 0f)
+                                MoveToTarget(leftOver);
+                        }
+                        //Ran out of extrapolate.
+                        else if (td.ExtrapolationState == TransformData.ExtrapolateState.Active)
+                        {
+                            rd.TimeRemaining = (float)(_extrapolation * _timeManager.TickDelta);
+                            td.ExtrapolationState = TransformData.ExtrapolateState.Disabled;
+                            if (leftOver > 0f)
+                                MoveToTarget(leftOver);
+                        }
+                        //Extrapolation has ended or was never enabled.
+                        else
+                        {
+                            //PROEND
+                            /* If everything matches up then end queue.
                              * Otherwise let it play out until stuff
                              * aligns. Generally the time remaining is enough
                              * but every once in awhile something goes funky
@@ -1711,7 +1732,10 @@ namespace FishNet.Component.Transforming
                             if (!HasChanged(td))
                                 _currentGoalData = null;
                             OnInterpolationComplete?.Invoke();
-                            }
+                            //PROSTART
+                        }
+                        //PROEND
+                    }
                 }
             }
         }
@@ -2265,7 +2289,16 @@ namespace FishNet.Component.Transforming
             //Default value.
             next.ExtrapolationState = TransformData.ExtrapolateState.Disabled;
 
-            }
+            //PROSTART
+            //Teleports cannot extrapolate.
+            if (_extrapolation == 0 || !_synchronizePosition || channel == Channel.Reliable || next.Position == prev.Position)
+                return;
+
+            Vector3 offet = (next.Position - prev.Position) * _extrapolation;
+            next.ExtrapolatedPosition = next.Position + offet;
+            next.ExtrapolationState = TransformData.ExtrapolateState.Available;
+            //PROEND
+        }
 
         /// <summary>
         /// Updates a client with transform data.
