@@ -24,6 +24,7 @@
   <Project Path="Unity.Services.Authentication.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
   <Project Path="MCPForUnity.Editor.csproj" />
+  <Project Path="BetterHierarchy.csproj" />
   <Project Path="Unity.Services.QoS.csproj" />
   <Project Path="QFSW.QC.csproj" />
   <Project Path="Unity.Services.Authentication.Editor.csproj" />
@@ -41,6 +42,7 @@
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.Splines.Editor.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />
+  <Project Path="Wooshii.HierarchyDecorator.Editor.csproj" />
   <Project Path="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.csproj" />
   <Project Path="NewAssembly.csproj" />
   <Project Path="QFSW.QC.Parsers.csproj" />
@@ -66,6 +68,7 @@
   <Project Path="SingularityGroup.HotReload.Runtime.Public.csproj" />
   <Project Path="Unity.Mathematics.Editor.csproj" />
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
+  <Project Path="BetterHierarchyDemoScripts.csproj" />
   <Project Path="QFSW.QC.Serializers.csproj" />
   <Project Path="PicoShot.Localization.Editor.csproj" />
   <Project Path="Wingman.csproj" />

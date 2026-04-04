@@ -4,14 +4,17 @@ using FishNet.Object;
 using UnityEngine;
 using QFSW.QC;
 using System.Linq;
+using System.Collections.Generic;
 using FishNet;
 
 namespace Basic
 {
     public class ManualPlayerSpawner : NetworkBehaviour
     {
-        [SerializeField] NetworkObject _playerPrefab;
+        [SerializeField] NetworkObject _playerPrefabs = new();
         [SerializeField] Transform _spawnPos;
+
+        // private readonly Dictionary<NetworkConnection, int> _clientPrefabIndices = new();
 
         public override void OnStartServer()
         {
@@ -20,46 +23,52 @@ namespace Basic
 
         public override void OnStopServer()
         {
-            if (SceneManager != null)
-                SceneManager.OnClientLoadedStartScenes -= OnClientLoadedStartScenes;
+            SceneManager.OnClientLoadedStartScenes -= OnClientLoadedStartScenes;
         }
 
         private void OnClientLoadedStartScenes(NetworkConnection conn, bool asServer)
         {
             if (asServer && !conn.Scenes.Contains(gameObject.scene))
             {
-                SceneManager.AddConnectionToScene(conn, gameObject.scene);
-                print("có player " + conn.ClientId + " đã vào scene " + gameObject.scene.name);
-                SpawnPlayers();
+                SpawnPlayerForClient(conn);
+
+                // in ra conn nào mới vừa được load xong start scenes và được spawn player
+                Debug.Log($"Spawned player for connection {conn.ClientId} after loading start scenes.");
             }
         }
 
         // The Server attribute here prevents this method from being called except on the server.
         [Server]
-        public void SpawnPlayers()
+        public void SpawnPlayerForClient(NetworkConnection conn)
         {
-            if (_playerPrefab == null)
+            if (_playerPrefabs == null)
             {
-                Debug.LogWarning("Player prefab is not assigned and thus cannot be spawned.");
+                Debug.LogWarning("No player prefab assigned and thus cannot be spawned.");
                 return;
             }
 
-            print("SpawnPlayers");
+            // Kiểm tra xem client đã được xác thực chưa
+            if (!conn.IsAuthenticated)
+                return;
 
-            foreach (NetworkConnection client in ServerManager.Clients.Values)
+            // Nếu client chưa có quyền truy cập vào scene này thì thêm quyền truy cập
+            if (!conn.Scenes.Contains(gameObject.scene))
+                SceneManager.AddConnectionToScene(conn, gameObject.scene);
+
+            // Xác định prefab index cho client (xoay vòng nếu quá số lượng)
+            // int prefabIndex = _clientPrefabIndices.Count % _playerPrefabs.Count;
+            // _clientPrefabIndices[conn] = prefabIndex;
+
+            NetworkObject prefab = _playerPrefabs;
+            NetworkObject obj = NetworkManager.GetPooledInstantiated(prefab, asServer: true);
+
+            if (obj == null)
             {
-                // Since the ServerManager.Clients collection contains all clients (even non-authenticated ones),
-                // we need to check if they are authenticated first before spawning a player object for them.
-                if (!client.IsAuthenticated)
-                    continue;
-
-                // If the client isn't observing this scene, make him an observer of it.
-                if (!client.Scenes.Contains(gameObject.scene))
-                    SceneManager.AddConnectionToScene(client, gameObject.scene);
-
-                NetworkObject obj = NetworkManager.GetPooledInstantiated(_playerPrefab, asServer: true);
-                Spawn(obj, client, gameObject.scene);
+                Debug.LogError($"Failed to instantiate player prefab {prefab.name} from pool.");
+                return;
             }
+
+            Spawn(obj, conn, gameObject.scene);
         }
     }
 }
