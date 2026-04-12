@@ -149,14 +149,13 @@ GameObject:
   - component: {fileID: 5933442481563986491}
   - component: {fileID: 2434288855732755065}
   - component: {fileID: 1305236706136740884}
-  - component: {fileID: 8747752604373656134}
   - component: {fileID: 8512698539419748430}
   - component: {fileID: 3543510933785333066}
   - component: {fileID: 4773790430672315101}
   m_Layer: 0
   m_Name: Player A
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 3936346786652291628, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -198,7 +197,7 @@ MonoBehaviour:
   <PredictedOwner>k__BackingField: {fileID: 0}
   NetworkBehaviours:
   - {fileID: 1305236706136740884}
-  - {fileID: 8747752604373656134}
+  - {fileID: 0}
   - {fileID: 8512698539419748430}
   - {fileID: 3543510933785333066}
   - {fileID: 4006494357881573849}
@@ -252,22 +251,6 @@ MonoBehaviour:
   _componentIndexCache: 0
   _addedNetworkObject: {fileID: 2434288855732755065}
   _networkObjectCache: {fileID: 2434288855732755065}
---- !u!114 &8747752604373656134
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5561822807918102936}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c029d29c4c8ad7448910550ddd1eeb4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Basic.PlayerMovement
-  _componentIndexCache: 1
-  _addedNetworkObject: {fileID: 2434288855732755065}
-  _networkObjectCache: {fileID: 2434288855732755065}
-  MoveSpeed: 5
 --- !u!114 &8512698539419748430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,6 +348,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5727754310604367771}
   - component: {fileID: 2961000715928736706}
+  - component: {fileID: 4404707074208662483}
   m_Layer: 0
   m_Name: CameraHolder
   m_TagString: Untagged
@@ -380,13 +364,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7666223481288265841}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.20762709, y: -0, z: -0, w: 0.97820807}
-  m_LocalPosition: {x: 0, y: 2.59, z: -2.73}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5933442481563986491}
-  m_LocalEulerAnglesHint: {x: 23.967, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2961000715928736706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -430,3 +414,35 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &4404707074208662483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7666223481288265841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be3fd973d3488e40bc1b0e902480417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NewAssembly::StandaloneLookController
+  PlayerForward: 1
+  LockCursor: 1
+  SmoothLook: 0
+  SensitivityX: 0.04
+  SensitivityY: 0.04
+  MultiplierX: 1
+  MultiplierY: 1
+  SmoothTime: 5
+  SmoothMultiplier: 2
+  HorizontalLimits:
+    min: -360
+    max: 360
+  VerticalLimits:
+    min: -80
+    max: 90
+  MainCamera: {fileID: 0}
+  PlayerRoot: {fileID: 5933442481563986491}
+  LookInputAction: {fileID: 0}
+  LookOffset: {x: 0, y: 0}
+  LookRotation: {x: 0, y: 0}

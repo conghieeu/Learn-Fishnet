@@ -24,6 +24,14 @@ public class ConnectionManager : MonoBehaviour
         _networkManager.ServerManager.StartConnection();
     }
 
+    // start server and client with a specific IP address
+    [Command("startwithip")]
+    public void StartWithIp()
+    {
+        StartServer();
+        StartClient();
+    }
+
     [Command("setipaddress")]
     public void SetIpAddress(string ipAddress)
     {

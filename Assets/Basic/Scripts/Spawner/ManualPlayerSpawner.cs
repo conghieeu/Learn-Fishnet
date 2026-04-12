@@ -11,10 +11,8 @@ namespace Basic
 {
     public class ManualPlayerSpawner : NetworkBehaviour
     {
-        [SerializeField] NetworkObject _playerPrefabs = new();
+        [SerializeField] NetworkObject _playerPrefabs;
         [SerializeField] Transform _spawnPos;
-
-        // private readonly Dictionary<NetworkConnection, int> _clientPrefabIndices = new();
 
         public override void OnStartServer()
         {
@@ -66,6 +64,12 @@ namespace Basic
             {
                 Debug.LogError($"Failed to instantiate player prefab {prefab.name} from pool.");
                 return;
+            }
+
+            if (_spawnPos != null)
+            {
+                obj.transform.position = _spawnPos.position;
+                obj.transform.rotation = _spawnPos.rotation;
             }
 
             Spawn(obj, conn, gameObject.scene);
