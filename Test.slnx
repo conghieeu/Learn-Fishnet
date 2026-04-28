@@ -17,6 +17,7 @@
   <Project Path="Unity.Splines.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="Unity.Services.Core.Environments.Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
   <Project Path="FishNet.Runtime.csproj" />
   <Project Path="QFSW.QC.Extras.csproj" />
@@ -42,7 +43,6 @@
   <Project Path="Unity.Cinemachine.csproj" />
   <Project Path="QFSW.QC.Editor.csproj" />
   <Project Path="Unity.Services.Core.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.Splines.Editor.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />

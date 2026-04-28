@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 8512698539419748430}
   - component: {fileID: 3543510933785333066}
   - component: {fileID: 4773790430672315101}
+  - component: {fileID: 3059057919373600861}
   m_Layer: 0
   m_Name: Player A
   m_TagString: Untagged
@@ -338,6 +339,22 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.85, z: 0}
+--- !u!114 &3059057919373600861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5561822807918102936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c029d29c4c8ad7448910550ddd1eeb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Basic.PlayerMovement
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 2434288855732755065}
+  _networkObjectCache: {fileID: 0}
+  MoveSpeed: 5
 --- !u!1 &7666223481288265841
 GameObject:
   m_ObjectHideFlags: 0

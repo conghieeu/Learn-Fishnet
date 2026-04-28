@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"d:/Unity3D/Test\" log --oneline -30)",
+      "Bash(git -C \"d:/Unity3D/Test\" branch -a)"
+    ]
+  }
+}
