@@ -1,6 +1,7 @@
 # Kiến trúc Dự án Mellow Abelson
 
-> Co-op Horror Survival Multiplayer (Unity 6 + FishNet + NodeCanvas + Easy Save 3)
+> Co-op Horror Survival Multiplayer (Unity 6 + FishNet + Easy Save 3)
+> AI: Pure C# Behaviour Tree (không NodeCanvas)
 
 ---
 
@@ -26,7 +27,6 @@
 |-----------|----------|
 | **Unity 6 + URP** | Game Engine |
 | **FishNet** | Networking framework (RPCs, SyncVars, SyncLists) |
-| **NodeCanvas (ParadoxNotion)** | AI Behavior Trees, FSMs, Dialogue Trees |
 | **Easy Save 3 (ES3)** | Save/Load serialization |
 | **Unity Input System** | Player input |
 | **Quantum Console (QFSW)** | In-game debug console |
@@ -40,6 +40,7 @@
 - **Interface-based**: IInteractable cho mọi object tương tác
 - **Loosely Coupled**: Các module giao tiếp qua ServiceLocator và Event System
 - **Server-Authoritative Saving**: Easy Save 3 chỉ chạy trên server
+- **Pure C# AI**: Behaviour Tree tự viết, không visual scripting
 
 ---
 
@@ -130,23 +131,24 @@ Assets/
         WorldPersistenceManager.cs       # Quản lý save/load world state qua ES3
         WorldObjectSaveData.cs           # Dữ liệu lưu của object
 
-    AI/                                  # NodeCanvas AI
-      BehaviourTrees/
-        AggressiveBehaviourTree.asset    # Behavior tree cho monster hung hăng
-        IntimidatedBehaviourTree.asset   # Behavior tree cho monster nhát gan
-      Blackboard/
-        AIBlackboardKeys.cs              # Constants cho blackboard keys
+    AI/                                  # Pure C# AI (không NodeCanvas)
+      BehaviourTree/                     # Behaviour Tree engine tự viết
+        BtNode.cs                        # Base node: Running/Success/Failure
+        SelectorNode.cs                  # OR logic: chạy con đầu tiên success
+        SequenceNode.cs                  # AND logic: chạy đến khi failure
+        ActionNode.cs                    # Leaf node: thực thi hành động
+        ConditionNode.cs                 # Leaf node: kiểm tra điều kiện
+        BehaviourTreeRunner.cs           # Runtime runner, tick theo interval
       Sensors/
         SoundDetector.cs                 # Sound detection AI
         SightSensor.cs                   # Sight detection (dùng CheckFieldOfView)
       State/
-        MonsterController.cs             # NetworkBehaviour + BehaviourTreeOwner
-        MonsterState.cs                  # Enum: Idle, Patrol, Chase, Attack, Flee, Dead
-      CustomNodes/
-        Conditions/
-          CheckFieldOfView.cs            # FOV check condition cho AI
-        Actions/
-          SetTimeScaleCurve.cs           # Smooth slow-motion action
+        MonsterController.cs             # NetworkBehaviour + BT runner
+        MonsterState.cs                  # Enum: Idle, Roam, Investigate, Chase, Attack, Flee, Dead
+        MonsterStateMachine.cs           # Finite State Machine cho AI
+      Utilities/
+        CheckFieldOfView.cs              # Utility: FOV check (raycast, angle)
+        SetTimeScaleCurve.cs             # Utility: smooth slow-motion
 
     UI/                                  # UI layer
       HUD/
@@ -200,10 +202,10 @@ Assets/
 
   # Third-party (giữ nguyên)
   FishNet/
-  ParadoxNotion/
   Plugins/
 
   # Sẽ deprecate sau khi migrate xong
+  ParadoxNotion/
   Basic/
   1-Scripts/
 ```
@@ -240,10 +242,11 @@ _Scripts/
 │   ├── Scrap/         ScrapSpawner
 │   └── Persistence/   WorldPersistenceManager (ES3)
 │
-├── AI/                ← Phụ thuộc Gameplay.Round + NodeCanvas
+├── AI/                ← Pure C# (không phụ thuộc NodeCanvas)
+│   ├── BehaviourTree/ BtNode, Selector, Sequence, Action, Condition, Runner
 │   ├── Sensors/       SoundDetector, SightSensor
-│   ├── State/         MonsterController
-│   └── CustomNodes/   CheckFieldOfView, SetTimeScaleCurve
+│   ├── State/         MonsterController, MonsterStateMachine
+│   └── Utilities/     CheckFieldOfView, SetTimeScaleCurve
 │
 ├── Networking/        ← Phụ thuộc Core + FishNet
 │   ├── Lobby/         LobbyManager
@@ -294,10 +297,10 @@ Gameplay:
   MellowAbelson.Gameplay.Persistence  → WorldPersistenceManager
 
 AI:
-  MellowAbelson.AI.State            → MonsterController
+  MellowAbelson.AI.BehaviourTree    → BtNode, SelectorNode, SequenceNode, ActionNode, ConditionNode, BehaviourTreeRunner
+  MellowAbelson.AI.State            → MonsterController, MonsterStateMachine
   MellowAbelson.AI.Sensors          → SoundDetector, SightSensor
-  MellowAbelson.AI.Blackboard       → AIBlackboardKeys
-  MellowAbelson.AI.CustomNodes      → CheckFieldOfView, SetTimeScaleCurve
+  MellowAbelson.AI.Utilities        → CheckFieldOfView, SetTimeScaleCurve
 
 Networking:
   MellowAbelson.Networking.Lobby    → LobbyManager
@@ -333,7 +336,6 @@ Data:
 GameBootstrap.Awake()
   → ServiceLocator.Register<SaveManager>(saveManager)
   → ServiceLocator.Register<InputManager>(inputManager)
-  // Thêm services khác khi cần
 
 // ServiceLocator pattern
 ServiceLocator.Get<SaveManager>().Save("key", data);
@@ -356,7 +358,6 @@ Load Gameplay scene → Player spawn
 ### 4b. Event System (ScriptableObject)
 
 ```csharp
-// Định nghĩa event
 [CreateAssetMenu(menuName = "MellowAbelson/Game Event")]
 public class GameEventSO : ScriptableObject
 {
@@ -364,30 +365,22 @@ public class GameEventSO : ScriptableObject
     public void Raise() => OnRaised?.Invoke();
 }
 
-// Listener (gắn trên GameObject)
 public class GameEventListener : MonoBehaviour
 {
     public GameEventSO Event;
     public UnityEvent Response;
-    // Subscribe trong OnEnable, unsubscribe trong OnDisable
 }
 ```
 
-**Các event chính:**
-- `OnPlayerDamaged`
-- `OnPlayerDied`
-- `OnItemPickedUp`
-- `OnRoundStateChanged`
-- `OnQuotaReached`
-- `OnMonsterDetectedPlayer`
-- `OnTerminalCommand`
+**Các event chính:** `OnPlayerDamaged`, `OnPlayerDied`, `OnItemPickedUp`,
+`OnRoundStateChanged`, `OnQuotaReached`, `OnMonsterDetectedPlayer`, `OnTerminalCommand`
 
 ### 4c. Interaction System (IInteractable)
 
 ```csharp
 public interface IInteractable
 {
-    string InteractionPrompt { get; }     // "Press E to pick up"
+    string InteractionPrompt { get; }
     float InteractionRange { get; }
     bool CanInteract(GameObject interactor);
     void OnInteract(GameObject interactor);
@@ -395,139 +388,139 @@ public interface IInteractable
     void OnInteractCancel(GameObject interactor);
 }
 
-public abstract class InteractableBase : NetworkBehaviour, IInteractable
-{
-    // Base implementation, các class con override OnInteract
-}
+public abstract class InteractableBase : NetworkBehaviour, IInteractable { }
 
-// Các implement:
-// PickupItem : InteractableBase    → nhặt item
-// DoorController : InteractableBase → mở cửa
-// TerminalController : InteractableBase → dùng terminal
-// HazardBase : InteractableBase → bẫy (turret, mine)
+// Implement: PickupItem, DoorController, TerminalController, HazardBase
 ```
 
-**Luồng Interaction:**
+**Luồng:**
 ```
-CLIENT                          SERVER
-  |                               |
-  |-- Update() → Raycast          |
-  |-- Tìm IInteractable            |
-  |-- Show prompt UI              |
-  |-- Player nhấn E               |
-  |-- [ServerRpc] ServerInteract  |
-  |                               |-- Validate distance
-  |                               |-- Resolve netId → IInteractable
-  |                               |-- OnInteract()
-  |                               |-- [ObserversRpc] sync
+CLIENT: Update() → Raycast → IInteractable → Show prompt
+        Player nhấn E → [ServerRpc] ServerInteract(netId)
+SERVER: Validate → OnInteract() → [ObserversRpc] sync
 ```
 
-### 4d. Inventory & Equipment
+### 4d. Inventory, Equipment, Stats
 
 ```csharp
 public class PlayerInventory : NetworkBehaviour, ISaveable
 {
     public SyncList<InventorySlotData> Slots;
-    
     [ServerRpc] ServerPickupItem(int itemId, int count);
     [ServerRpc] ServerDropItem(int slotIndex);
     [ServerRpc] ServerMoveItem(int fromSlot, int toSlot);
-    [ServerRpc] ServerUseItem(int slotIndex);
-}
-
-[Serializable]
-public struct InventorySlotData
-{
-    public int ItemId;
-    public int StackCount;
-    public float CurrentDurability;
-}
-
-public class HotbarController : NetworkBehaviour
-{
-    [SyncVar] int SelectedSlotIndex;
-    [ServerRpc] ServerSelectSlot(int index);
-    [ServerRpc] ServerScroll(int direction);
 }
 ```
 
-### 4e. Stats & Equipment
-
-```csharp
-public class PlayerStats : NetworkBehaviour
-{
-    [SyncVar] float _baseMoveSpeed = 5f;
-    [SyncVar] float _moveSpeedMultiplier = 1f;
-    [SyncVar] float _damageMultiplier = 1f;
-    [SyncVar] float _defense = 0f;
-
-    // Cộng dồn modifiers từ equipment
-    void Recalculate() { /* sum base + equipment modifiers */ }
-}
-
-public class EquipmentHandler : NetworkBehaviour
-{
-    SyncList<EquipmentSlotData> EquippedSlots;
-    [ServerRpc] Equip(int inventorySlotIndex);
-    [ServerRpc] Unequip(int equipmentSlotIndex);
-}
-```
-
-### 4f. Health & Damage
+### 4e. Health & Damage
 
 ```csharp
 public class PlayerHealth : NetworkBehaviour, ISaveable
 {
     [SyncVar] float _currentHealth;
     [SyncVar] bool _isDead;
-
-    [ServerRpc] void ServerTakeDamage(DamageInfo damage)
-    {
-        // Validate damage
-        // Apply damage
-        // [ObserversRpc] OnDamageTaken / OnDeath
-    }
-}
-
-[Serializable]
-public struct DamageInfo
-{
-    public float Amount;
-    public DamageType Type;  // Physical, Fall, Fire, Poison, Explosion, Crush, Drowning
-    public int SourceNetId;
-    public Vector3 HitPoint;
-    public Vector3 HitDirection;
+    [ServerRpc] void ServerTakeDamage(DamageInfo damage);
+    // Server validate → [ObserversRpc] OnDamageTaken / OnDeath
 }
 ```
 
-### 4g. AI - Monster Controller
+### 4f. AI - Pure C# Behaviour Tree
+
+**Behaviour Tree Engine (tự viết, 6 files):**
+
+```
+BtNode (abstract)
+  ├── SelectorNode    (OR: chạy các con, success khi 1 con success)
+  ├── SequenceNode    (AND: chạy các con, failure khi 1 con failure)
+  ├── ActionNode      (thực thi hành động, trả về Success/Failure/Running)
+  └── ConditionNode   (kiểm tra điều kiện, trả về Success/Failure)
+```
+
+```csharp
+// Ví dụ: tạo behaviour tree cho monster
+var tree = new SelectorNode("Root",
+    new SequenceNode("Attack",
+        new ConditionNode("CanSeeTarget?", () => CanSeeTarget()),
+        new ActionNode("Chase", ChaseTarget),
+        new ActionNode("Attack", AttackTarget)
+    ),
+    new SequenceNode("Investigate",
+        new ConditionNode("HeardSound?", () => state == Investigating),
+        new ActionNode("MoveToSound", MoveToLastSound)
+    ),
+    new ActionNode("Patrol", Patrol)
+);
+
+runner.BuildTree(tree);
+// runner.SetTickRate(0.2f); // tick mỗi 200ms
+```
+
+**MonsterController (NetworkBehaviour):**
 
 ```csharp
 public class MonsterController : NetworkBehaviour
 {
-    BehaviourTreeOwner _behaviourTree;  // NodeCanvas
     [SyncVar] MonsterState _currentState;
+    BehaviourTreeRunner _btRunner;  // Pure C#, không NodeCanvas
 
-    // Server: Set state, sync qua ObserversRpc
-    [Server] void SetState(MonsterState newState);
-
-    // Client: nghe sound, báo server
-    [ServerRpc(RequireOwnership = false)]
-    void ReportSoundHeard(Vector3 position, float intensity);
+    protected virtual void BuildDefaultBehaviourTree()
+    {
+        // Xây dựng BT khác nhau cho từng loại monster
+        // Aggressive → ưu tiên tấn công
+        // Intimidated → ưu tiên bỏ chạy
+    }
 }
-
-public enum MonsterState { Idle, Roaming, Investigating, Chasing, Attacking, Fleeing, Dead }
 ```
 
-**NodeCanvas Custom Nodes:**
-- `CheckFieldOfView` - Kiểm tra target trong tầm nhìn (khoảng cách, góc, vật cản)
-- `SetTimeScaleCurve` - Smooth slow-motion effect
+**MonsterStateMachine (FSM helper):**
 
-**AI Sensors:**
-- `SoundDetector` - Monster nghe thấy tiếng động (footstep, gunshot, voice, ...)
-- `SightSensor` - Monster nhìn thấy player (dùng CheckFieldOfView)
+```csharp
+public class MonsterStateMachine
+{
+    Dictionary<MonsterState, Action> _stateActions;
+    MonsterState _currentState;
+    event Action<MonsterState, MonsterState> OnStateChanged;
 
-### 4h. Round Manager (State Machine)
+    void SetState(MonsterState newState);
+    void Update(); // gọi action tương ứng với state hiện tại
+}
+```
+
+**Utilities (pure C#, không NodeCanvas dependency):**
+
+```csharp
+// Static utility, không cần MonoBehaviour
+public static class CheckFieldOfView
+{
+    public static bool IsTargetInSight(Transform agent, GameObject target,
+        float sightDistance, float viewAngle, LayerMask obstacleMask);
+
+    // Dùng từ ConditionNode:
+    new ConditionNode("SeePlayer?", () =>
+        CheckFieldOfView.IsTargetInSight(transform, player, 15f, 90f, walls));
+}
+
+public class SetTimeScaleCurve : MonoBehaviour
+{
+    // Smooth slow-motion, gọi từ Update
+    // Không cần NodeCanvas ActionTask
+}
+```
+
+**Mối quan hệ giữa các thành phần AI:**
+
+```
+MonsterController (NetworkBehaviour)
+  ├── BehaviourTreeRunner (MonoBehaviour)
+  │     └── BehaviourTree (BtNode tree)
+  │           ├── ConditionNode → CheckFieldOfView (static utility)
+  │           └── ActionNode → navigation, animation calls
+  ├── MonsterStateMachine (pure C# FSM)
+  ├── SoundDetector → [ServerRpc] ReportSoundHeard()
+  └── SyncVar<MonsterState> → [ObserversRpc] sync to clients
+```
+
+### 4g. Round Manager (State Machine)
 
 ```csharp
 public class RoundManager : NetworkBehaviour, ISaveable
@@ -537,94 +530,53 @@ public class RoundManager : NetworkBehaviour, ISaveable
     [SyncVar] int _currentDay;
     [SyncVar] float _currentQuota;
     [SyncVar] float _totalScrapCollected;
-
-    [Server] void StartRound();
-    [Server] void EndRound();
-    [Server] void AddScrap(float value);
 }
 
 public enum RoundState { Lobby, Landing, Exploration, ExtractionPhase, BetweenRounds, GameOver }
 ```
 
-**State Machine Flow:**
+**State Flow:**
 ```
-Lobby
-  |-- all players ready
-  v
-Landing
-  |-- timer expires
-  v
-Exploration
-  |-- all players in ship OR timer expires
-  v
-ExtractionPhase
-  |-- ship leaves
-  v
-BetweenRounds
-  |-- store closed, next day
-  v
-Landing (hoặc GameOver nếu không đạt quota)
+Lobby → Landing → Exploration → ExtractionPhase → BetweenRounds → Landing (hoặc GameOver)
 ```
 
 ---
 
 ## 5. Data Flow
 
-### 5a. Network RPC Flow (tổng quát)
+### 5a. Network RPC Flow
 
 ```
 CLIENT                          SERVER                         OTHER CLIENTS
-  |                               |                               |
   |-- [ServerRpc] Request  ---->  |                               |
-  |                               |-- Validate input              |
-  |                               |-- Process (authoritative)     |
+  |                               |-- Validate + Process          |
   |                               |-- Update SyncVars             |
   |   (SyncVar auto-sync)  <---- |                               |
   |                               |-- [ObserversRpc] Broadcast -->|-- Update visuals
-  |                               |-- SyncList.OnChange --------->|-- UI updates
 ```
 
-### 5b. Easy Save 3 Integration (Server-Authoritative)
+### 5b. Easy Save 3 (Server-Authoritative)
 
 ```
-SERVER (host):
-  OnRoundEnd() OR OnServerShutdown():
-    1. WorldPersistenceManager.SaveAll()
-       → Thu thập tất cả ISaveable objects
-       → SaveManager.Save("WorldState_Day_{day}", worldData)
-    2. For mỗi player:
-       → SaveManager.Save("PlayerData_{clientId}", playerData)
-    3. SaveManager.Save("RoundState", roundData)
-       → CurrentDay, Quota, v.v.
+SERVER ONLY:
+  OnRoundEnd():
+    SaveManager.Save("WorldState_Day_{day}", worldData)
+    SaveManager.Save("PlayerData_{clientId}", playerData)
+    SaveManager.Save("RoundState", roundData)
 
   OnServerStart():
-    1. SaveManager.Load("RoundState") → resume game
-    2. SaveManager.Load("WorldState_Day_{day}") → restore world
-    3. Player connect → load("PlayerData_{id}") → set SyncVars
+    Load("RoundState") → resume
+    Load("WorldState_Day_{day}") → restore world
 
-CLIENT (non-host):
-  - KHÔNG save/load game state
-  - Chỉ save local settings (volume, graphics, keybindings)
-  - Mọi state đồng bộ qua FishNet SyncVars/SyncLists/RPCs
+CLIENT: Chỉ save local settings (volume, graphics, keybindings)
 ```
 
-### 5c. UI Update Flow (SyncList/SyncVar Events)
+### 5c. UI Update Flow
 
 ```
-PlayerInventory.Slots (SyncList<InventorySlotData>)
-  |
-  |-- OnChange event fires on ALL clients when server modifies
-  |
-  v
-InventoryUI.OnInventoryChanged()
-  - Đọc SyncList state
-  - Rebuild slot visuals
-  - DragDropHandler cập nhật reference
-  |
-  v
-HotbarUI.OnHotbarChanged()
-  - Subscribe HotbarController.SelectedSlotIndex.OnChange
-  - Highlight active slot
+PlayerInventory.Slots (SyncList)
+  |-- OnChange → InventoryUI.RebuildVisuals()
+  |-- DragDropHandler → ServerRpc MoveItem()
 ```
 
 ---
@@ -633,28 +585,19 @@ HotbarUI.OnHotbarChanged()
 
 | Pattern | Vị trí | Mục đích |
 |---------|--------|----------|
-| **Service Locator** | `Core.Services` | Đăng ký/truy xuất services, tránh Find/Singleton tràn lan |
-| **Event-Driven** | `Core.Events` (GameEventSO) | Decouple cross-system: 1 event → nhiều listener |
-| **State Machine** | `RoundManager`, `MonsterController` | Quản lý state rõ ràng, dễ mở rộng, dễ debug |
-| **Strategy** | AI (NodeCanvas) | Mỗi monster type = 1 BehaviorTree asset riêng biệt |
-| **Interface** | `IInteractable` | Tất cả object tương tác đều implement, Player chỉ cần gọi 1 hàm |
-| **Observer** | `SyncList.OnChange` | UI tự động cập nhật khi data thay đổi |
-| **Factory** | `ItemFactory` / `ScrapSpawner` | Tạo object từ ID, weighted random |
+| **Service Locator** | `Core.Services` | Đăng ký/truy xuất services |
+| **Event-Driven** | `Core.Events` | Decouple cross-system |
+| **State Machine** | `RoundManager`, `MonsterStateMachine` | Quản lý state rõ ràng |
+| **Composite (Behaviour Tree)** | `AI.BehaviourTree` | Selector/Sequence/Action/Condition |
+| **Interface** | `IInteractable` | Tất cả object tương tác đều implement |
+| **Observer** | `SyncList.OnChange` | UI tự động cập nhật |
+| **Factory** | `ItemFactory` / `ScrapSpawner` | Tạo object từ ID |
 
-### Event-Driven Cross-System Example:
+### Event-Driven Example:
 
 ```
-[PlayerDied Event]
-  → RoundManager: cập nhật score, check game-over
-  → BodyRetrievalHandler: spawn corpse
-  → SpectatorController: activate spectator mode
-  → UIManager: show death screen
-
-[RoundStateChanged Event]
-  → AIDirector: adjust monster spawn rates
-  → StoreManager: open/close store
-  → HUDController: update timer display
-  → WorldPersistenceManager: trigger save
+[PlayerDied] → RoundManager (score), SpectatorController (activate), UIManager (death screen)
+[RoundStateChanged] → AIDirector (spawn rates), StoreManager, HUDController, WorldPersistenceManager
 ```
 
 ---
@@ -663,57 +606,26 @@ HotbarUI.OnHotbarChanged()
 
 ### Quy tắc bất di bất dịch
 
-1. **Server Authority**
-   - Mọi game state chỉ do server quyết định
-   - Client chỉ gửi request qua `[ServerRpc]`
-   - Server validate và broadcast kết quả
-
-2. **SyncVar/SyncList cho persistent state**
-   - Dùng cho state cần đồng bộ với late-join clients
-   - `[ObserversRpc]` chỉ dùng cho transient events (animation, VFX, sound)
-
-3. **ES3 saves chỉ trên server**
-   - Client chỉ save local settings (audio, graphics, keybindings)
-   - Mọi gameplay state đồng bộ qua FishNet
-
-4. **ScriptableObject là read-only data**
-   - Không chứa runtime state
-   - Dùng để config/tuning (damage values, spawn rates, v.v.)
-
+1. **Server Authority** - Client gửi `[ServerRpc]`, server validate + broadcast
+2. **SyncVar/SyncList** cho persistent state; `[ObserversRpc]` cho transient events
+3. **ES3 saves chỉ trên server** - Client chỉ save local settings
+4. **ScriptableObject là read-only data** - Không chứa runtime state
 5. **IInteractable cho MỌI object tương tác**
-   - Không hard-code logic tương tác theo type
-   - Player chỉ gọi `OnInteract()`, không cần biết object là gì
-
-6. **GameEventSO cho cross-system communication**
-   - Tránh reference trực tiếp giữa các module
-   - 1 system raise event, N system listen
-
-7. **Không dùng FindObjectOfType**
-   - Dùng ServiceLocator hoặc inspector references
-   - Performance + maintainability
+6. **GameEventSO cho cross-system** - Tránh reference trực tiếp
+7. **Không dùng FindObjectOfType** - Dùng ServiceLocator hoặc inspector
+8. **AI thuần C#** - Không visual scripting (NodeCanvas), toàn bộ AI trong code
 
 ### Coding Conventions
 
 ```csharp
-// Namespace theo module
 namespace MellowAbelson.Player.Health { ... }
 
-// Class naming: PascalCase, rõ ràng
-public class PlayerHealth : NetworkBehaviour { ... }
-
-// ServerRpc prefix: "Server"
+// ServerRpc → "Server" prefix, ObserversRpc → "Observers" prefix
 [ServerRpc] void ServerTakeDamage(DamageInfo damage);
-
-// ObserversRpc prefix: "Observers"
 [ObserversRpc] void ObserversOnDamageTaken(DamageInfo damage);
 
-// TargetRpc prefix: "Target"
-[TargetRpc] void TargetReceiveMessage(string message);
-
-// SyncVar fields: _ prefix
+// SyncVar → _ prefix
 [SyncVar] private float _currentHealth;
-
-// Public properties: không prefix
 public float CurrentHealth => _currentHealth;
 ```
 
@@ -721,39 +633,36 @@ public float CurrentHealth => _currentHealth;
 
 ## 8. Migration Plan
 
-### Phase 1: Tạo cấu trúc mới (✅ Hoàn thành)
-- Tạo `Assets/_Scripts/` với đầy đủ sub-folders
-- Tạo core files: ServiceLocator, IService, GameEventSO, SaveManager
-- Tạo Player/AI/Gameplay/Networking systems mới
+### Phase 1-2: Cấu trúc mới + Core (✅ Hoàn thành)
+- `_Scripts/` với đầy đủ sub-folders
+- Core: ServiceLocator, GameEventSO, SaveManager, InputManager
+- AI: Behaviour Tree engine + Utilities (thuần C#, thay thế NodeCanvas)
 
-### Phase 2: Migrate từ `1-Scripts/` (✅ Hoàn thành)
-| File cũ | File mới | Trạng thái |
-|---------|----------|------------|
-| `1-Scripts/InputSystem_Actions.cs` | `_Scripts/Core/Input/` | Giữ nguyên bản gốc |
-| `1-Scripts/InputSystem_Actions.inputactions` | `_Scripts/Core/Input/` | ✅ Copied |
-| `1-Scripts/StandaloneLookController.cs` | `_Scripts/Player/Look/PlayerLookController.cs` | ⏳ Chờ refactor |
-| `1-Scripts/CustomNodes/CheckFieldOfView.cs` | `_Scripts/AI/CustomNodes/Conditions/` | ✅ Migrated |
-| `1-Scripts/CustomNodes/SetTimeScaleCurve.cs` | `_Scripts/AI/CustomNodes/Actions/` | ✅ Migrated |
+### Phase 3: Player + Gameplay + AI (✅ Hoàn thành)
+| File | Vị trí | Trạng thái |
+|------|--------|------------|
+| Player systems | `_Scripts/Player/` | ✅ Created |
+| AI Behaviour Tree | `_Scripts/AI/BehaviourTree/` | ✅ 6 files |
+| AI Utilities | `_Scripts/AI/Utilities/` | ✅ CheckFieldOfView, SetTimeScaleCurve |
+| Gameplay systems | `_Scripts/Gameplay/` | ✅ Created |
+| Networking | `_Scripts/Networking/` | ✅ Created |
 
-### Phase 3: Migrate từ `Basic/Scripts/` (⏳ Chờ)
+### Phase 4: Migrate từ thư mục cũ (⏳)
 | File cũ | File mới | Ghi chú |
 |---------|----------|---------|
-| `Basic/Scripts/ConnectionManager.cs` | `_Scripts/Core/Network/ConnectionManager.cs` | ✅ Created |
-| `Basic/Scripts/PlayerMovement.cs` | `_Scripts/Player/Movement/PlayerMovementController.cs` | ⏳ Chờ refactor (thêm stamina, Input System) |
-| `Basic/Scripts/PlayerCamera.cs` | `_Scripts/Player/Look/PlayerCameraController.cs` | ⏳ Chờ |
-| `Basic/Scripts/PlayerCubeCreator.cs` | **XÓA** (debug code) | ⏳ |
-| `Basic/Scripts/FishNetTestCode.cs` | **XÓA** (debug code) | ⏳ |
-| `Basic/Scripts/SyncMaterialColor.cs` | `_Scripts/Network/Sync/` | ⏳ |
-| `Basic/Scripts/Load scene/LoadGameplayScene.cs` | `_Scripts/Networking/Scene/SceneLoadManager.cs` | ✅ Created |
-| `Basic/Scripts/Load scene/LoadingScreen.cs` | `_Scripts/Networking/Scene/LoadingScreenController.cs` | ✅ Created |
-| `Basic/Scripts/Load scene/LoadingScreenSceneProcessor.cs` | `_Scripts/Networking/Scene/` | ⏳ |
-| 5 spawner variants | `_Scripts/Networking/Spawner/PlayerSpawnManager.cs` | ✅ Created |
+| `1-Scripts/StandaloneLookController.cs` | `_Scripts/Player/Look/` | ⏳ |
+| `Basic/Scripts/PlayerMovement.cs` | `_Scripts/Player/Movement/` | ⏳ |
+| `Basic/Scripts/PlayerCamera.cs` | `_Scripts/Player/Look/` | ⏳ |
+| `Basic/Scripts/PlayerCubeCreator.cs` | XÓA | ⏳ |
+| `Basic/Scripts/FishNetTestCode.cs` | XÓA | ⏳ |
+| `1-Scripts/CustomNodes/*` | Đã thay bằng AI/Utilities/ | ✅ Converted |
+| `ParadoxNotion/` | XÓA toàn bộ | ⏳ Chờ verify |
 
-### Phase 4: Deprecate (⏳)
-- Update scene/prefab references → dùng file mới trong `_Scripts/`
+### Phase 5: Deprecate (⏳)
+- Update scene/prefab references → `_Scripts/`
+- **Xóa `ParadoxNotion/`** (tiết kiệm ~50MB)
 - Đổi tên `1-Scripts/` → `1-Scripts_DEPRECATED/`
 - Đổi tên `Basic/` → `Basic_DEPRECATED/`
-- Xóa hẳn sau 1 vòng test đầy đủ
 
 ---
 
@@ -775,12 +684,13 @@ public float CurrentHealth => _currentHealth;
 13. Gameplay.Interaction (Player.Interaction + Items)
 14. Gameplay.Round       (nhiều hệ thống)
 15. Gameplay.Persistence (Core.Save)
-16. AI.Sensors           (FishNet + NodeCanvas)
-17. AI.State             (Gameplay.Round + NodeCanvas)
-18. UI (tất cả)          (Player + Gameplay)
-19. Networking.Lobby     (FishNet)
-20. Networking.Spawner   (FishNet + Data)
-21. Networking.AntiCheat (tất cả gameplay)
+16. AI.BehaviourTree     (zero dependencies - thuần C#)
+17. AI.Sensors           (FishNet)
+18. AI.State             (AI.BehaviourTree + Gameplay.Round)
+19. UI (tất cả)          (Player + Gameplay)
+20. Networking.Lobby     (FishNet)
+21. Networking.Spawner   (FishNet + Data)
+22. Networking.AntiCheat (tất cả gameplay)
 ```
 
 ---
@@ -788,8 +698,8 @@ public float CurrentHealth => _currentHealth;
 ## 10. File hiện tại trong `Assets/_Scripts/`
 
 ```
-_Scripts/
-├── Core/
+_Scripts/  (44 files)
+├── Core/                          (10 files)
 │   ├── Boot/GameBootstrap.cs
 │   ├── Services/IService.cs, ServiceLocator.cs
 │   ├── Network/ConnectionManager.cs
@@ -798,29 +708,43 @@ _Scripts/
 │   ├── Save/SaveManager.cs, ISaveable.cs, SaveKeys.cs
 │   └── Console/ConsoleCommands.cs
 │
-├── Player/
+├── Player/                        (9 files)
 │   ├── Movement/StaminaSystem.cs
 │   ├── Interaction/IInteractable.cs, PlayerInteractor.cs
 │   ├── Inventory/PlayerInventory.cs, InventorySlotData.cs, HotbarController.cs
 │   ├── Health/PlayerHealth.cs, DamageInfo.cs
 │   └── Stats/PlayerStats.cs, StatType.cs, StatModifier.cs
 │
-├── AI/
-│   ├── Blackboard/AIBlackboardKeys.cs
+├── AI/                            (10 files - thuần C#)
+│   ├── BehaviourTree/BtNode.cs, SelectorNode.cs, SequenceNode.cs,
+│   │                ActionNode.cs, ConditionNode.cs, BehaviourTreeRunner.cs
 │   ├── Sensors/SoundDetector.cs
-│   ├── State/MonsterController.cs
-│   └── CustomNodes/Conditions/CheckFieldOfView.cs, Actions/SetTimeScaleCurve.cs
+│   ├── State/MonsterController.cs, MonsterStateMachine.cs
+│   └── Utilities/CheckFieldOfView.cs, SetTimeScaleCurve.cs
 │
-├── Gameplay/
+├── Gameplay/                      (5 files)
 │   ├── Interaction/InteractableBase.cs, PickupItem.cs
 │   ├── Items/ItemDataSO.cs, ItemDatabase.cs
 │   ├── Round/RoundManager.cs
 │   └── Persistence/WorldPersistenceManager.cs
 │
-└── Networking/
+└── Networking/                    (3 files)
     ├── Scene/SceneLoadManager.cs, LoadingScreenController.cs
     └── Spawner/PlayerSpawnManager.cs
 ```
+
+### So sánh trước/sau khi bỏ NodeCanvas
+
+| Khía cạnh | NodeCanvas | Pure C# (hiện tại) |
+|-----------|-----------|-------------------|
+| AI logic | Visual tree + C# tasks | 100% C# code |
+| Diff/version control | ❌ Binary .asset files | ✅ Text .cs files |
+| Vibe code friendly | ❌ Không thể AI edit | ✅ AI có thể edit thoải mái |
+| Performance | Runtime overhead | Minimum overhead |
+| Dependency | +ParadoxNotion (~50MB) | Zero |
+| Flexibility | Giới hạn bởi NodeCanvas API | Tự do implement |
+| Time to implement | Nhanh (kéo thả) | Chậm hơn (viết code) |
+| Debug | Visual debugger | Breakpoints + logs |
 
 ---
 
