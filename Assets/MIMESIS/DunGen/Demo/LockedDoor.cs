@@ -1,0 +1,87 @@
+using UnityEngine;
+
+namespace DunGen.Demo
+{
+	public class LockedDoor : MonoBehaviour, IKeyLock
+	{
+		public float OpenDuration = 1f;
+
+		public Vector3 OpenPositionOffset = new Vector3(0f, -3f, 0f);
+
+		[HideInInspector]
+		[SerializeField]
+		private int keyID;
+
+		[HideInInspector]
+		[SerializeField]
+		private KeyManager keyManager;
+
+		private Vector3 initialPosition;
+
+		private float openTime;
+
+		private bool isOpening;
+
+		private Door door;
+
+		public Key Key => keyManager.GetKeyByID(keyID);
+
+		private void Start()
+		{
+			door = GetComponent<Door>();
+		}
+
+		public void OnKeyAssigned(Key key, KeyManager keyManager)
+		{
+			keyID = key.ID;
+			this.keyManager = keyManager;
+		}
+
+		private void OnTriggerEnter(Collider c)
+		{
+			if (isOpening)
+			{
+				return;
+			}
+			PlayerInventory component = c.GetComponent<PlayerInventory>();
+			if (!(component == null))
+			{
+				if (component.HasKey(keyID))
+				{
+					ScreenText.Log("Opened {0} door", Key.Name);
+					component.RemoveKey(keyID);
+					Open();
+				}
+				else
+				{
+					ScreenText.Log("{0} key required", Key.Name);
+				}
+			}
+		}
+
+		private void Update()
+		{
+			if (isOpening)
+			{
+				openTime += Time.deltaTime;
+				if (openTime >= OpenDuration)
+				{
+					openTime = OpenDuration;
+					isOpening = false;
+				}
+				base.transform.position = Vector3.Lerp(initialPosition, initialPosition + OpenPositionOffset, openTime / OpenDuration);
+			}
+		}
+
+		private void Open()
+		{
+			if (!isOpening)
+			{
+				isOpening = true;
+				initialPosition = base.transform.position;
+				openTime = 0f;
+				door.IsOpen = true;
+			}
+		}
+	}
+}

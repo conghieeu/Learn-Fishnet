@@ -1,5 +1,7 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
+  <Project Path="Unity.InputSystem.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
   <Project Path="Unity.Services.Authentication.PlayerAccounts.csproj" />
   <Project Path="Unity.Services.Core.Internal.csproj" />
@@ -10,22 +12,20 @@
   <Project Path="SingularityGroup.HotReload.Editor.csproj" />
   <Project Path="Unity.Collections.csproj" />
   <Project Path="Unity.Services.Relay.csproj" />
-  <Project Path="Unity.VisualScripting.Core.Editor.csproj" />
   <Project Path="FishNet.Codegen.Cecil.csproj" />
+  <Project Path="Unity.VisualScripting.Core.Editor.csproj" />
   <Project Path="Unity.PerformanceTesting.Editor.csproj" />
-  <Project Path="Unity.Splines.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="Unity.Services.Core.Environments.Editor.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Unity.Splines.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
   <Project Path="FishNet.Runtime.csproj" />
   <Project Path="QFSW.QC.Extras.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.Networking.Transport.csproj" />
   <Project Path="Unity.Services.Authentication.csproj" />
-  <Project Path="Unity.InputSystem.csproj" />
-  <Project Path="MCPForUnity.Editor.csproj" />
   <Project Path="BetterHierarchy.csproj" />
+  <Project Path="MCPForUnity.Editor.csproj" />
   <Project Path="Unity.Services.QoS.csproj" />
   <Project Path="QFSW.QC.csproj" />
   <Project Path="Unity.Services.Authentication.Editor.csproj" />
@@ -72,6 +72,7 @@
   <Project Path="Unity.Mathematics.Editor.csproj" />
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="BetterHierarchyDemoScripts.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="QFSW.QC.Serializers.csproj" />
   <Project Path="PicoShot.Localization.Editor.csproj" />
   <Project Path="Wingman.csproj" />

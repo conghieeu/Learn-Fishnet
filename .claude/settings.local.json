@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git -C \"d:/Unity3D/Test\" log --oneline -30)",
-      "Bash(git -C \"d:/Unity3D/Test\" branch -a)"
+      "Bash(git -C \"d:/Unity3D/Test\" branch -a)",
+      "Bash(grep '\\\\.cs$')",
+      "Bash(Get-ChildItem -Path \"D:\\\\Unity3D\\\\Test\\\\Assets\\\\MIMESIS\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }
